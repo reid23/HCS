@@ -1,6 +1,6 @@
 # HCS
 All my code for HCS.
-Seriously, what are you looking for here?  Whatever quest drives you, *abandon it.*  You shall find no answers in these desolate wastes.
+Seriously, what are you looking for here, internet stranger?  Whatever quest drives you, *abandon it.*  You shall find no answers in these desolate wastes.
 
 recognize that?
 
