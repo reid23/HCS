@@ -1,6 +1,6 @@
 # notes
 I split up the functions this time.  
-Lab03.py contains the first functions I wrote to solve the problems.  I've added functionality to them, but the base algorithm (if you could even call it that) is the same. For this reason, Lab03Simple.py is somewhat cleaner code, or at least less cluttered code.  
+Lab03.py contains the first functions I wrote to solve the problems.  I've added functionality to them, but the base algorithm (if you could call it that) is the same. For this reason, Lab03Simple.py is somewhat cleaner code, or at least less cluttered code.  
 
 I'm going to put the explanations for each function here because it's easier to read, and easier to type (don't have to make #s or deal with auto-complete).
 
@@ -56,4 +56,28 @@ Returns:
 
 ## Lab03Simple.py
 ### ```testScores()```
+Finds the min, max, average, and average letter grade for a set of test scores.
 
+Parameters:
+- None.  All input is through input().  Scores must be integers between 0 and 100.
+
+Returns:
+- Nothing. all output is printed.
+
+### ```points()```
+Calculates the slope of a line through any two points, the distance between them, the equation of the line through them, and the angle of rotation about the origin from the first to the second. 
+
+Parameters:
+- None.  All input is through input().  Input must be integers.
+
+Returns:
+- Nothing. all output is printed.
+
+### ```leap()```
+Determines whether a year is a leap year or not.
+
+Parameters:
+- None.  All input is through input().  Input must be a positive integer.
+
+Returns:
+- Nothing. all output is printed.
