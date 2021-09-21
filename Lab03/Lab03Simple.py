@@ -1,7 +1,8 @@
 from math import *
 
-#just pretend these are functions, alright?
+#just pretend these inserted wherever I use them, alright?
 #i'm tired and lazy
+#i don't want to copy and paste them over and over
 tanAng=lambda a0, a1: degrees(atan(a1/a0)) if not a0==0 else degrees(atan(inf))
 # for above had to add if to catch division by zero
 # works with np datatypes, just returns inf, but 
