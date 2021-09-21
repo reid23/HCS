@@ -6,14 +6,54 @@ I'm going to put the explanations for each function here because it's easier to 
 
 ## Lab03.py
 ### ```points(*points)```
-Points takes any number of positional arguments, all 1D sequences with length 2.  If arguments are given, two must be given for the function to function correctly.  Points takes the first two points and calculates the slope of a line through them, the distance between them, the equation of the line through them, and the angle of rotation about the origin from the first to the second.  
+Calculates the slope of a line through them, the distance between them, the equation of the line through them, and the angle of rotation about the origin from the first to the second.  
 
-If no arguments are given, points will use python's builtin input() function to get two points.  
+Parameters:
+- ```*points``` : Two 1D, length-2 numpy ndarrays or python lists representing the input points of the function in the form [x0,y0], [x1,y1].  If no arguments are given, points will use python's builtin input() function to get two points.  If the user is so stubborn that they refuse to give any input, points will create two random points with coordinates between -1 and 1.  
 
-If the user is so stubborn that they refuse to give any input, points will create two random points with coordinates between -1 and 1.  
-
-The outputs of the calculations are printed out.  
+Returns:
+- null
+- All outputs are printed. 
 
 
 ### ```testScores(*scores)```
-testScores takes any number of positional arguments, all integers from 0 to 100.  
+Finds the min, max, average, standard deviation, and the average letter grade for a set of test scores.  
+
+Parameters:
+- ```*scores``` : any number of integers from 0 to 100.  These are the test scores.  If none are given, testScores will use input() to get scores.
+
+Returns: 
+- null
+- All outputs are printed.
+
+### ```leap(*years)```
+Calculates whether a year is a leap year.  
+
+Parameters:
+- ```*years``` : any number of positive integers.  These are the input years.  If none are given, leap will use input() to gather a single year.
+
+Returns:
+- ```output``` : a numpy ndarray of boolean values, representing whether each input value is a leap year or not.
+- If no arguments were given, ```output``` is printed instead of returned.
+
+### ```tanAng(a)```
+Calculates the angle vector in degrees using atan.  Range is [90, -90]
+
+Parameters:
+- ```a```` : A numpy ndarray with shape (2,) representing the input vector in <x,y> form.
+
+Returns:
+- ```null``` : A numpy scalar, the angle of the vector.
+
+### ```corrrectAng(a)```
+Converts negative angles to their positive counterparts.
+
+Parameters:
+- ```a``` : an angle, in degrees.  Float or int.
+
+Returns:
+- ```null``` : an angle, in degrees.  Float or int, based on input
+
+## Lab03Simple.py
+### ```testScores()```
+

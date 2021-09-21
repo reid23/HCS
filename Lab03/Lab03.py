@@ -182,3 +182,12 @@ def leap(*year):
     else:
         return output
 # %%
+
+import time
+import random
+start=time.time()
+for i in range(10000):
+    points([1,1],[1,1])
+end=time.time()
+print('Time take:',end-start)
+# %%

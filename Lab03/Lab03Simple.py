@@ -1,5 +1,5 @@
 from math import *
-#%%
+
 #just pretend these are functions, alright?
 #i'm tired and lazy
 tanAng=lambda a0, a1: degrees(atan(a1/a0)) if not a0==0 else degrees(atan(inf))
@@ -21,7 +21,7 @@ def testScores():
     letterGrade=''
     for i in range(tests):
         inputString='Enter the score for test ' + str(i+1) + ': '
-        curScore=input(inputString)
+        curScore=int(input(inputString))
         if curScore>maxScore:
             maxScore=curScore
         if curScore<minScore:
@@ -45,21 +45,21 @@ def testScores():
     print('Your high score was', maxScore)
     print('Your low score was', minScore)
     print('Your test average is', avg, '(This is in the', letterGrade,'range).')
-#%%
+
 def points():
     print('Welcome to the equation center!')
     a0,a1 = eval(input('Enter the coordinates of point A as x,y: '))
     b0,b1 = eval(input('Enter the coordinates of point B as x,y: '))
 
-    if a0==b0:
+    if a1==b1 and a0==b0:
+        equation=f'ambiguous, not enough data.'
+        slope='ambiguous, not enough data'
+    elif a0==b0:
         slope='undefined'
         equation=f'x={a0}'
     elif a1-b1==0:
         slope=0
         equation=f'y={a1}'
-    elif a1==b1 and a0==b0:
-        equation=f'ambiguous, not enough data.'
-        slope='ambiguous, not enough data'
     else:
         slope=(a1-b1)/(a0-b0)
         b=round((-1*slope*a0)+a1, 2)
@@ -78,6 +78,7 @@ def points():
 
     angle=bAng-aAng
     angle=round(angle, 2)
+    angle=correctAng(angle)
 
     print('***************************')
     print(f'The slope of the line is {slope}.')
@@ -85,9 +86,10 @@ def points():
     print(f'The equation of the line is {equation}')
     print(f'The angle of rotation about the origin from A to B is {angle} degrees')
 
-# %%
+
 def leap():
     year=input('Year: ')
+    year=int(year)
     if year%400==0:
         output = 'is'
     elif year%100==0:
@@ -97,3 +99,16 @@ def leap():
     else:
         output = 'is not' 
     print(year, output, 'a leap year.')
+
+if __name__ == '__main__':
+    print('Leap:')
+    leap()
+    print('\n')
+    print('Points:')
+    points()
+    print('\n')
+    print('Scores:')
+    testScores()
+
+#%%
+
