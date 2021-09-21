@@ -131,10 +131,6 @@ def points():
     #find the difference of the angles (the angle between them)
     angle=bAng-aAng
 
-    #correct the angle again because the subtraction
-    #might have made some negative angles
-    angle=correctAng(angle)
-
     #round the output
     angle=round(angle, 2)
 
@@ -188,3 +184,5 @@ if __name__ == '__main__':
     print('Scores:')
     testScores()
 
+
+# %%

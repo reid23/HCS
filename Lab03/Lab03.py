@@ -167,7 +167,7 @@ def leap(*year):
     else:
         manual=False
         year=np.array(year)
-    print(year)
+    
     panic=False
     for counter, i in enumerate(year):
         try:
@@ -215,4 +215,6 @@ def leap(*year):
     if manual:
         print(f"{int(year[0])} {'is' if output[0] else 'is not'} a leap year.")
     else:
-        return output
+        return output==True
+
+# %%
