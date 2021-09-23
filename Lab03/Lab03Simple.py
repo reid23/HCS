@@ -175,12 +175,12 @@ def leap():
 
 #for testing
 if __name__ == '__main__':
-    print('Leap:')
-    leap()
-    print('\n')
-    print('Points:')
-    points()
-    print('\n')
+    # print('Leap:')
+    # leap()
+    # print('\n')
+    # print('Points:')
+    # points()
+    # print('\n')
     print('Scores:')
     testScores()
 
