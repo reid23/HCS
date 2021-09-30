@@ -6,7 +6,6 @@ import warnings
 from math import *
 import random
 
-
 #utils for points()
 #description in readme
 tanAng=lambda a: degrees(atan(a[1]/a[0]))

@@ -1,0 +1,1 @@
+checker.py < inputs.txt
