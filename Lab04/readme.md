@@ -2,6 +2,11 @@
 Welp, here's lab 4.  I didn't add much to this one.  
 The documentation is in each file; these are just misc notes.
 
+I also wanted to say that I've started using github to sync my stuff across devices... Definitely not because I've run out of room in dropbox.
+
+Anyway, if I forget to submit something, it's probably there.  https://github.com/reid23/HCS
+Just leaving this here, hopefully it will never be used, but I tend to be forgetful :|
+
 # Pentagon
 I spent a bunch of time trying to get the lines to follow the mouse in this, and ultimately decided it was impossible, or at least not worth my time.  The problem (as usual :|) was that it's super hard to do anything non-gui-based on macs.  I couldn't figure out a way to get the window location.  I could get the cursor location in global coordinates using pyautogui, but then needed to subtract the graphWin's coordinates to get the spot where I should put the actual objects.  Here's what I tried:
 
