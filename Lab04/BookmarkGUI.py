@@ -45,14 +45,8 @@ line.draw(win)
 point.draw(win)
 circle.draw(win)
 
-p=Point(5,5)
-p.draw(win)
-
 
 win.getMouse()
-import applescript
-r=applescript.tell.app('System Events', 'get position of first window of application process "python"')
-print(r.out)
 win.close()
 exit()
 
