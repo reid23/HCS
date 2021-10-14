@@ -3,10 +3,17 @@ from graphics import *
 
 #%%
 class button():
-    def __init__(self, center, xSize=70, ySize=20, text:str):
+    def __init__(self, center, xSize=70, ySize=20, text:str, color='white', lineColor='black', draw=False):
         self.center=center
-        self.
-        
+        self.boundary=Rectangle(Point(center.getX()-(xSize/2), center.getY()-(ySize/2)), Point(center.getX()+(xSize/2), center.getY()+(ySize/2)))
+        self.boundary.setColor(color)
+        self.boundary.setOutline(lineColor)
+        self.text=Text(center, text)
+        if draw:
+            self.draw()
+        def draw(self, GraphWin):
+            self.boundary.draw(GraphWin)
+            self.text.draw(GraphWin)
 
 #%%
 class Dye():
