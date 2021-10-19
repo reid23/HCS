@@ -2,6 +2,8 @@
 from graphics import *
 from reidList import reidList as r
 from math import *
+#%%
+
 
 #%%
 def rotMat(yaw, pitch, roll):
@@ -15,6 +17,41 @@ def rotMat(yaw, pitch, roll):
     )
     return mat
 
+
+def rotate(axis, degrees, points):
+    """rotate a set of points by an angle around an arbitrary axis
+
+    Args:
+        axis (reidList): a 3d vector representing the axis around which to rotate the points
+        degrees (float, int): the degrees around the axis to rotate the points
+        points (reidList): The points, in form [[x0,y0,z0], [x1,y1,z1], ..., [xn, yn, zn]], to rotate
+
+    Returns:
+        reidList: a list of points, in the same format as the input points, that have been rotated.
+    """
+    #init output array
+    output=r(len(points))
+    #convert axis to a unit vector
+    ax=axis/sqrt((axis(0)**2 + axis(1)**2 + axis(2)**2))
+
+    #create rotation quaternion
+    ang=radians(degrees)
+    rQ=r(cos(ang/2), ax(0)*sin(ang/2), ax(1)*sin(ang/2), ax(2)*sin(ang/2))
+
+    #create input quaternion (just add zero as the real part, have x, y, z as i, j, k coefs)
+    for p in points:
+        curPt=r(0, p(0), p(1), p(2))
+    
+    #TODO: implement actual multiplication
+    #formula: qa*qb=[sa*sb - a<dot>b, sa*b + sb*a + a<cross>b]
+    #in form [real, complex[i,j,k]]
+
+    #output point/vec should be complex component of rQ*pQ*CrQ where CrQ is the congugate of rQ.
+    #and pQ is the point (curPt)
+    
+    return output
+
+
 #%%
 class Dye():
     def __init__(self, center, size=50, sides=6):
@@ -25,6 +62,8 @@ class Dye():
             size (int, optional): the side length of the square around the dye. Defaults to 50.
             sides (int, optional): The number of faces on the die. Defaults to 6.
         """
+
+        #TODO: implement different numbers of sides
         self.vecs=r(
             r(1,1,1),
             r(-1,1,1),
