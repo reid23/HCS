@@ -7,8 +7,109 @@
 # but it'll be useful for this lab, i guess
 #it would also be nice to have a dict class
 #but that is definately way too much work
+#%%
 class reidList():
-    def __init__(self, *elements, length=-1):
+    def __init__(self, 
+        e0=None, 
+        e1=None, 
+        e2=None, 
+        e3=None, 
+        e4=None, 
+        e5=None, 
+        e6=None, 
+        e7=None, 
+        e8=None, 
+        e9=None, 
+        e10=None, 
+        e11=None, 
+        e12=None, 
+        e13=None, 
+        e14=None, 
+        e15=None, 
+        e16=None, 
+        e17=None, 
+        e18=None, 
+        e19=None, 
+        e20=None, 
+        e21=None, 
+        e22=None, 
+        e23=None, 
+        e24=None, 
+        e25=None, 
+        e26=None, 
+        e27=None, 
+        e28=None, 
+        e29=None, 
+        e30=None, 
+        e31=None, 
+        e32=None, 
+        e33=None, 
+        e34=None, 
+        e35=None, 
+        e36=None, 
+        e37=None, 
+        e38=None, 
+        e39=None, 
+        e40=None, 
+        e41=None, 
+        e42=None, 
+        e43=None, 
+        e44=None, 
+        e45=None, 
+        e46=None, 
+        e47=None, 
+        e48=None, 
+        e49=None, 
+        e50=None, 
+        e51=None, 
+        e52=None, 
+        e53=None, 
+        e54=None, 
+        e55=None, 
+        e56=None, 
+        e57=None, 
+        e58=None, 
+        e59=None, 
+        e60=None, 
+        e61=None, 
+        e62=None, 
+        e63=None, 
+        e64=None, 
+        e65=None, 
+        e66=None, 
+        e67=None, 
+        e68=None, 
+        e69=None, 
+        e70=None, 
+        e71=None, 
+        e72=None, 
+        e73=None, 
+        e74=None, 
+        e75=None, 
+        e76=None, 
+        e77=None, 
+        e78=None, 
+        e79=None, 
+        e80=None, 
+        e81=None, 
+        e82=None, 
+        e83=None, 
+        e84=None, 
+        e85=None, 
+        e86=None, 
+        e87=None, 
+        e88=None, 
+        e89=None, 
+        e90=None, 
+        e91=None, 
+        e92=None, 
+        e93=None, 
+        e94=None, 
+        e95=None, 
+        e96=None, 
+        e97=None, 
+        e98=None, 
+        e99=None, length=-1):
         """constructor for reidList
 
         Args:
@@ -19,17 +120,27 @@ class reidList():
         if not length == -1:
             self.len=length
             for i in range(length):
-                exec(f'self.element{i}=0')
+                exec(f'self.elements{i}=0')
         else:
+            '''
             self.len=len(elements)
             for counter, i in enumerate(elements):
                 theString='self.elements'+str(counter)+'='+repr(i)
                 exec(f'self.elements{counter}={repr(i)}')
+            '''
+            self.len=0
+            for i in range(100):
+                if eval(f'e{i}')==None: continue
+                self.len+=1
+                if type(eval(f'e{i}'))==str:
+                    exec(f'self.elements{i}=repr(e{i})')
+                else:
+                    exec(f"self.elements{i}=e{i}")
 
     def __repr__(self):
         output='reidList('
         for i in range(self.len):
-            output+=f'{self.get(i)}'
+            output+=repr(self.get(i))
             if not (self.len-1)==i:
                 output+=','
         output+=')'
@@ -45,6 +156,7 @@ class reidList():
         return output
 
     def __iter__(self):
+        self.curElement=0
         return self
     
     def __next__(self):
@@ -85,6 +197,16 @@ class reidList():
         for i in range(start, stop, step):
             output.append(self.get(i))
         return output
+
+    def vecMatMul(self, mat):
+        output=reidList(length=self.len)
+        assert len(mat)==self.len, 'matrix had incorrect shape.'
+        counter=0
+        for i in mat:
+            output=output+(i*self.get(counter))
+            counter += 1
+        return output
+
 
     #bubblesort
     #not most efficient, but pretty easy
@@ -202,6 +324,8 @@ class reidList():
             for i in range(self.len):
                 if not self.get(i)==y:
                     return False
+        elif y==None:
+            return False #if we'e got here... it can't be None.  Because self exists.
         else:
             #in this case it's another reidList object
             for i in range(self.len):
@@ -216,3 +340,4 @@ class reidList():
     #and we'll probably learn about lists soon
     #also better support for multi-dimensional arrays would be nice but
     #again--numpy coming soon, hopefully
+# %%
