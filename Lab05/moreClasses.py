@@ -5,8 +5,35 @@ from random import randrange as rand
 
 # %%
 class ScoreCell():
-    def __init__(self):
-        pass
+    def __init__(self, center, label: str):
+        self.types=r('1s', '2s', '3s', '4s', '5s', '6s', 'bonus', 'three\nof a\nkind', 'four\nof a\nkind', 'full\nhouse', 'small\nstra-\night', 'large\nstra-\night', 'chance', 'yaht-\nzee', 'total')
+        assert self.types.exists(label), f'{label} is not a valid type of ScoreCell.\n Valid types are {self.types}'
+        self.center=center
+        self.boundary=Rectangle(Point(center.getX()-20, center.getY()-50), Point(center.getX()+20, center.getY()+50))
+        self.line=Line(Point(center.getX()-20, center.getY()-20), Point(center.getX()+20, center.getY()-20))
+        print(type(center))
+        p=center.clone()
+        p.move(0, 15)
+        self.label=Text(p, label)
+        p.move(0, -25)
+        self.value=Text(p, '-')
+        drawn=False
+    def draw(self, win):
+        self.line.draw(win)
+        self.boundary.draw(win)
+        self.label.draw(win)
+        self.value.draw(win)
+        drawn=True
+    def setValue(self, val):
+        self.value.setText(str(val))
+        if self.drawn: 
+            self.draw()
+    def undraw(self):
+        self.line.undraw()
+        self.boundary.undraw()
+        self.label.undraw()
+        self.value.undraw()
+        self.drawn=True
 
 #%%
 class Button():

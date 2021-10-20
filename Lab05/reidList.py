@@ -132,10 +132,17 @@ class reidList():
             for i in range(100):
                 if eval(f'e{i}')==None: continue
                 self.len+=1
-                if type(eval(f'e{i}'))==str:
-                    exec(f'self.elements{i}=repr(e{i})')
-                else:
-                    exec(f"self.elements{i}=e{i}")
+                exec(f"self.elements{i}=e{i}")
+    def loop(self, func):
+        """an alternative to making this class iterable.  
+
+        Args:
+            func (function): the function to be executed.  In the form func(listInput, counterInput)
+        """
+        counter=0
+        for i in range(self.len):
+            func(self.get(i), counter)
+            counter+=1
 
     def __repr__(self):
         output='reidList('
@@ -189,7 +196,7 @@ class reidList():
 
     def append(self, value):
         #because indexed at zero, self.len is always one plus the last element
-        exec(f'self.elements{self.len}={repr(value)}')
+        exec(f'self.elements{self.len}=value')
         self.len+=1
 
     def getRange(self, start: int, stop: int, step=1):
@@ -207,7 +214,11 @@ class reidList():
             counter += 1
         return output
 
-
+    def exists(self, x):
+        for i in self:
+            if x==i:
+                return True
+        return False
     #bubblesort
     #not most efficient, but pretty easy
     def sort(self):

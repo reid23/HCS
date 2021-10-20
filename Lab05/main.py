@@ -29,7 +29,6 @@ def diceIn(dyeList):
     for d in dyeList:
         d.setAttr(positionRel=r(0,-200))
 
-
 #* Window setup
 #set up window
 w, h = 800, 800
@@ -74,6 +73,16 @@ dyeMat.draw(win)
 
 for d in dice:
     d.draw(win)
+
+#width of each cell: 40
+#width of all cells: 520
+#half of all cell width: 260
+types=r('1s', '2s', '3s', '4s', '5s', '6s', 'bonus', 'three\nof a\nkind', 'four\nof a\nkind', 'full\nhouse', 'small\nstra-\night', 'large\nstra-\night', 'chance', 'yaht-\nzee', 'total')
+cells=r()
+for t in types:
+    cells.append(ScoreCell(Point(((w/2)+((len(cells)-7)*40)), h-100), t))
+for c in cells:
+    c.draw(win)
 
 win.getMouse()
 

@@ -17,6 +17,17 @@ def rotMat(yaw, pitch, roll):
     )
     return mat
 
+dot=lambda a, b: a(0)*b(0) + a(1)*b(1) + a(2)*b(2)
+cross=lambda a, b: r(a(1)*b(2) - a(2)*b(1), a(2)*b(0) - a(0)*b(2), a(0)*b(1) - a(1)*b(0))
+def qMul(a, b):
+    real=a(0)*b(0) - dot(a.getRange(1,4), b.getRange(1,4))
+    c=a(0)*b + b(0)*a + cross(a.getRange(1,4), b.getRange(1,4))
+    return r(
+        real,
+        c(0),
+        c(1),
+        c(2)
+    )
 
 def rotate(axis, degrees, points):
     """rotate a set of points by an angle around an arbitrary axis
@@ -37,11 +48,18 @@ def rotate(axis, degrees, points):
     #create rotation quaternion
     ang=radians(degrees)
     rQ=r(cos(ang/2), ax(0)*sin(ang/2), ax(1)*sin(ang/2), ax(2)*sin(ang/2))
-
-    #create input quaternion (just add zero as the real part, have x, y, z as i, j, k coefs)
+    CrQ=rQ*(-1)
+    CrQ.set(0, CrQ(0)*(-1))
+    counter=0
     for p in points:
+        #create input quaternion (just add zero as the real part, have x, y, z as i, j, k coefs)
         curPt=r(0, p(0), p(1), p(2))
-    
+
+        #multiply to rotate
+        result=qMul(qMul(rQ, curPt), CrQ)
+        
+        output.set(counter, result)
+        counter += 1
     #TODO: implement actual multiplication
     #formula: qa*qb=[sa*sb - a<dot>b, sa*b + sb*a + a<cross>b]
     #in form [real, complex[i,j,k]]
