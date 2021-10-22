@@ -15,9 +15,76 @@ class ScoreCell():
         p=center.clone()
         p.move(0, 15)
         self.label=Text(p, label)
-        p.move(0, -25)
+        self.locked=False
+        self.bonus=0
+        self.yahtzeeUsed=False
+        
+        p.move(0, -50)
         self.value=Text(p, '-')
         drawn=False
+
+    def _calc(self, dice):
+    #should have used a switch here...
+    #switch statements have been added in python 3.10!
+    #very exciting
+        label=self.label.getText()
+        if label=='1s':
+            return dice.count(1)
+        elif label=='2s':
+            return dice.count(2)*2
+        elif label=='3s':
+            return dice.count(3)*3
+        elif label=='4s':
+            return dice.count(4)*4
+        elif label=='5s':
+            return dice.count(5)*5
+        elif label=='6s':
+            return dice.count(6)*6
+        elif label=='bonus':
+            pass
+        elif label=='three\nof a\nkind':
+            c=dice.toCounter()
+            for i in c:
+                if i(1) >= 3:
+                    return sum(dice)
+            return 0
+                
+        elif label=='four\nof a\nkind':
+            c=dice.toCounter()
+            for i in c:
+                if i(1) >= 4:
+                    return sum(dice)
+            return 0
+
+        elif label=='full\nhouse':
+            c=dice.toCounter()
+            if not len(c)==2:
+                return 0
+            if c(0)(1)==2 or c(0)(1)==3:
+                return 25
+            return 0
+
+        elif label=='small\nstra-\night':
+            if dice.exists(r(1,2,3,4)) or dice.exists(r(2,3,4,5)) or dice.exists(r(3,4,5,6)):
+                return 30
+            return 0
+                    
+        elif label=='large\nstra-\night':
+            if dice.exists(r(1,2,3,4,5) or r(2,3,4,5,6)):
+                return 40
+            return 0
+        elif label=='chance':
+            return sum(dice)
+        elif label=='yaht-\nzee':
+            if len(dice.toCounter())==1:
+                if self.yahtzeeUsed==False:
+                    self.yahtzeeUsed=True
+                    return 50
+                self.bonus += 1
+                return 0
+            return 0
+        elif label=='total':
+            pass
     def draw(self, win):
         self.line.draw(win)
         self.boundary.draw(win)
@@ -34,6 +101,30 @@ class ScoreCell():
         self.label.undraw()
         self.value.undraw()
         self.drawn=True
+    def inBounds(self, p):
+        if abs(p.getX()-self.center.getX()) <= 20 and abs(p.getY()-self.center.getY()) <= 50:
+            return True
+        return False
+    def lockScore(self):
+        self.locked=True
+        self.value.setTextColor('black')
+        self.lastValue=self.value.getText()
+    
+    def prelimCalc(self, dice):
+        if not self.locked:
+            self.lastValue=self.value.getText()
+            self.value.setTextColor('red')
+            self.value.setText(str(self._calc(dice)))
+    def notLock(self):
+        self.locked=False
+        self.value.setText(str(self.lastValue))
+        self.value.setTextColor('black')
+    def getLocked(self):
+        return self.locked
+    def getBonus(self):
+        return self.bonus
+    def getVal(self):
+        return self.value
 
 #%%
 class Button():
@@ -180,6 +271,65 @@ class Dye():
             self.draw(self.win)
     def getPos(self):
         return r(self.center.getX(), self.center.getY())
+    def clicked(self, point):
+        if abs(self.center.getX()-point.getX()) < self.size/2 and abs(self.center.getY()-point.getY()) < self.size/2:
+            return True
+        return False
+
+#%%
+class MsgBox():
+    def __init__(self, win, center, size, text='message', color='white', draw=False):
+        self.win=win
+        self.center=center
+        self.size=size
+        self.border=Rectangle(Point(center.getX()+size(0)/2, center.getY()+size(1)/2), Point(center.getX()-size(0)/2, center.getY()-size(1)/2))
+        self.text=Text(center, text)
+        self.border.setFill(color)
+        if draw:
+            self.border.draw(win)
+            self.text.draw(win)
+            self.drawn=True
+        else:
+            self.drawn=False
+        
+    def draw(self, win=None):
+        if self.drawn:
+            return
+        if win:
+            self.win=win
+        self.border.draw(self.win)
+        self.text.draw(self.win)
+        self.drawn=True
+    def undraw(self):
+        if not self.drawn:
+            return
+        self.border.undraw()
+        self.text.undraw()
+        self.drawn=False
+
+    #getters and setters
+    def setText(self, text):
+        self.text.setText(text)
+    def setColor(self, color):
+        self.border.setFill(color)
+    def setSize(self, size):
+        self.size=size
+        self.border=Rectangle(Point(self.center.getX()+size(0)/2, self.center.getY()+size(1)/2), Point(self.center.getX()-size(0)/2, self.center.getY()-size(1)/2))
+        self.text=Text(self.center, self.text.getText())
+        if self.drawn:
+            self.drawn=False
+            self.draw()
+    def moveRel(self, pos):
+        self.border.move(pos(0), pos(1))
+        self.text.move(pos(0), pos(1))
+    def moveAbs(self, pos):
+        self.center=Point(pos(0), pos(1))
+        self.border=Rectangle(Point(self.center.getX()+self.size(0)/2, self.center.getY()+self.size(1)/2), Point(self.center.getX()-self.size(0)/2, self.center.getY()-self.size(1)/2))
+        self.text=Text(self.center, self.text.getText())
+        if self.drawn:
+            self.drawn=False
+            self.draw()
+
 # %%
 if __name__ == '__main__':
     win=GraphWin()

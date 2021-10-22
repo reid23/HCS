@@ -10,8 +10,22 @@ from moreClasses import *
 from graphics import *
 
 #* Functions
-#other way, cleaner, more encapsulated
-#will use this
+def score(cells, win):
+    while True:
+        p=win.getMouse()
+        flag=False
+        for c in cells:
+            if c.inBounds(p):
+                c.lockScore()
+                flag=True
+                continue
+        if flag:
+            for c in cells:
+                if not c.getLocked():
+                    c.notLock()
+            
+            break
+
 def rollDice(dyeList):
     output=r(length=len(dice))
     counter=0
@@ -39,12 +53,15 @@ win=GraphWin('Yahtzee', w, h)
 #       get player name
 t=Text(Point(w/2, (h/2)-40), "What's your name?")
 e=Entry(Point(w/2, h/2), 10)
-startButton=Button(Point(w/2, (h/2)+40))
+startButton=Button(Point(w/2, (h/2)+40), "Start")
 t.draw(win)
 e.draw(win)
 startButton.draw(win)
-startButton.waitClick()
-name=e.getText()
+while True:
+    startButton.waitClick()
+    name=e.getText()
+    if not name=='': #because do: while doesn't exist
+        break
 t.undraw()
 e.undraw()
 startButton.undraw()
@@ -79,17 +96,38 @@ for d in dice:
 #half of all cell width: 260
 types=r('1s', '2s', '3s', '4s', '5s', '6s', 'bonus', 'three\nof a\nkind', 'four\nof a\nkind', 'full\nhouse', 'small\nstra-\night', 'large\nstra-\night', 'chance', 'yaht-\nzee', 'total')
 cells=r()
+print('type of reidList object:', type(cells))
 for t in types:
     cells.append(ScoreCell(Point(((w/2)+((len(cells)-7)*40)), h-100), t))
 for c in cells:
     c.draw(win)
 
-win.getMouse()
+rollButton=Button(Point(w/2, h/2 - 100), 'ROLL!', r(100, 30), draw=True, win=win)
+msgbox=MsgBox(win, Point(w/2, h/2 + 150), r(200, 50), 'Click roll to begin.', draw=True)
 
-rollDice(dice)
-diceOut(dice)
 
-win.getMouse()
+
+#*start game!
+rollButton.waitClick()
+msgbox.setText('Click the dice you would like to keep.\nClick roll to roll again.')
+outDice=r(willDye, mayDye, tyDye, riderDye, yülDye)
+inDice=r()
+while True:
+    rolls=rollDice(dice)
+    diceOut(dice)
+    print(rolls)
+    while True
+        p=win.getMouse()
+        for d in dice:
+            if d.clicked(p):
+                d.
+                continue
+
+    for c in cells:
+        c.prelimCalc(rolls)
+
+score(cells, win)
+
 
 diceIn(dice)
 

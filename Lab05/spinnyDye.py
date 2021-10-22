@@ -60,13 +60,11 @@ def rotate(axis, degrees, points):
         
         output.set(counter, result)
         counter += 1
-    #TODO: implement actual multiplication
-    #formula: qa*qb=[sa*sb - a<dot>b, sa*b + sb*a + a<cross>b]
-    #in form [real, complex[i,j,k]]
-
-    #output point/vec should be complex component of rQ*pQ*CrQ where CrQ is the congugate of rQ.
-    #and pQ is the point (curPt)
     
+    counter=0
+    for i in output:
+        output.set(counter, i.getRange(1,4))
+        counter += 1
     return output
 
 

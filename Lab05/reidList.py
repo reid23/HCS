@@ -154,7 +154,7 @@ class reidList():
         return output
 
     def __str__(self):
-        output='<reidList Object> ['
+        output='['
         for i in range(self.len):
             output+=f'{self.get(i)}'
             if not (self.len-1)==i:
@@ -192,6 +192,10 @@ class reidList():
             return eval(f'self.elements{self.len+element}')
 
     def set(self, element, value):
+        if element >=0:
+            pass
+        else:
+            element=self.len+element  
         exec(f'self.elements{element}={repr(value)}')
 
     def append(self, value):
@@ -215,10 +219,17 @@ class reidList():
         return output
 
     def exists(self, x):
-        for i in self:
-            if x==i:
-                return True
-        return False
+        t=type(x)
+        if t==int or t==str or t==float or t==bool:
+            for i in self:
+                if x==i:
+                    return True
+            return False
+        else:
+            for i in x:
+                if not self.exists(i):
+                    return False
+        return True
     #bubblesort
     #not most efficient, but pretty easy
     def sort(self):
@@ -232,6 +243,35 @@ class reidList():
                         output.set(j, b)
                         output.set(j+1, a)
         return output
+    
+    def count(self, x):
+        output=0
+        for i in self:
+            if i==x:
+                output+=1
+        return output
+    
+
+    #like collections.Counter
+    def toCounter(self):
+        ordered=self.sort()
+        output=reidList()
+        counted=reidList()
+        for i in ordered:
+            if counted.exists(i):
+                output.set(-1, output(-1)+reidList(0, 1))
+            else:
+                counted.append(i)
+                output.append(reidList(i, 1))
+        return output
+                
+    def delElement(self, element):
+        while element<self.len-1:
+            exec(f'self.elements{element}=self.get({element+1})')
+            element+=1
+        exec(f'del(self.elements{element})')
+        self.len-=1
+        
 
     def __len__(self):
         return self.len
