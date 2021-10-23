@@ -74,6 +74,7 @@ class ScoreCell():
                 return 40
             return 0
         elif label=='chance':
+            print(dice)
             return sum(dice)
         elif label=='yaht-\nzee':
             if len(dice.toCounter())==1:
@@ -108,16 +109,14 @@ class ScoreCell():
     def lockScore(self):
         self.locked=True
         self.value.setTextColor('black')
-        self.lastValue=self.value.getText()
     
     def prelimCalc(self, dice):
         if not self.locked:
-            self.lastValue=self.value.getText()
             self.value.setTextColor('red')
             self.value.setText(str(self._calc(dice)))
     def notLock(self):
         self.locked=False
-        self.value.setText(str(self.lastValue))
+        self.value.setText('-')
         self.value.setTextColor('black')
     def getLocked(self):
         return self.locked
@@ -207,6 +206,11 @@ class Button():
             return l
         else:
             return p
+    def clicked(self, point):
+        l=r(point.getX(), point.getY())
+        if self.boundary.getP1().getX()<l(0)<self.boundary.getP2().getX() and self.boundary.getP1().getY()<l(1)<self.boundary.getP2().getY():
+            return True
+        return False
 
 
 

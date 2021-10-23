@@ -23,7 +23,6 @@ def score(cells, win):
             for c in cells:
                 if not c.getLocked():
                     c.notLock()
-            
             break
 
 def rollDice(dyeList):
@@ -109,22 +108,32 @@ msgbox=MsgBox(win, Point(w/2, h/2 + 150), r(200, 50), 'Click roll to begin.', dr
 
 #*start game!
 rollButton.waitClick()
-msgbox.setText('Click the dice you would like to keep.\nClick roll to roll again.')
-outDice=r(willDye, mayDye, tyDye, riderDye, yülDye)
-inDice=r()
-while True:
-    rolls=rollDice(dice)
-    diceOut(dice)
+msgbox.setText('Click the dice you would like roll again.\nClick roll to roll again.')
+for i in range(3):
+    rolls=r()
+    for d in dice:
+        if d.getPos()(1)<200:
+            d.roll()
+            rolls.append(d.reid())
+            d.setAttr(positionRel=r(0, 200))
+        else:
+            rolls.append(d.reid())
     print(rolls)
-    while True
+    for c in cells:
+        c.prelimCalc(rolls)
+    while True:
         p=win.getMouse()
         for d in dice:
             if d.clicked(p):
-                d.
+                if d.getPos()(1)>200:
+                    d.setAttr(positionRel=r(0,-200))
+                else:
+                    d.setAttr(positionRel=r(0, 200))
                 continue
+        if rollButton.clicked(p):
+            break
+    
 
-    for c in cells:
-        c.prelimCalc(rolls)
 
 score(cells, win)
 

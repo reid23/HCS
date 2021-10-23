@@ -234,14 +234,12 @@ class reidList():
     #not most efficient, but pretty easy
     def sort(self):
         output=eval(repr(self))
-        for i in range(output.len):
-            for j in range(output.len-i):
-                a = output.get(j)
-                if a != output.get(-1):
-                    b=output.get(j+1)
-                    if a>b:
-                        output.set(j, b)
-                        output.set(j+1, a)
+        for i in range(len(output)-1):
+            for j in range(len(output)-i-1):
+                if output(j) > output(j+1) :
+                    outputJ=output(j) #because we can't do multiple assignment with reidList elements
+                    output.set(j, output(j+1))
+                    output.set(j+1, outputJ)
         return output
     
     def count(self, x):
@@ -392,3 +390,6 @@ class reidList():
     #also better support for multi-dimensional arrays would be nice but
     #again--numpy coming soon, hopefully
 # %%
+if __name__=='__main__':
+    print(reidList(5,5,5,1,1).sort())
+    print(reidList(1,5,2,5,7).sort())
