@@ -70,7 +70,7 @@ def show(corners, win):
             print('i:', i)
             print('j:', j)
             print(abs(2-getDistance(i, j)))
-            if abs(2-getDistance(i, j))>0.2:
+            if abs(2-getDistance(i, j))>0.3:
                 pass
             else:
                 lines.append(Line(Point(i(0), i(1)), Point(j(0), j(1))))
@@ -168,6 +168,6 @@ win.setCoords(-3,-3,3,3)
 
 print('rR:', rotateRodrigues(r(1,1,1), 60, corners))
 print('Q:', rotateQ(r(1,1,1), 60, corners))
-show(rotateRodrigues(r(1,1,1), 60, corners), win)
+show(rotateQ(r(1,1,1), 60, corners), win)
 
 win.getMouse()
