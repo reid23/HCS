@@ -2,6 +2,8 @@
 from graphics import *
 from reidList import reidList as r
 from math import *
+#%%
+
 
 #%%
 def rotMat(yaw, pitch, roll):
@@ -15,6 +17,55 @@ def rotMat(yaw, pitch, roll):
     )
     return mat
 
+dot=lambda a, b: a(0)*b(0) + a(1)*b(1) + a(2)*b(2)
+cross=lambda a, b: r(a(1)*b(2) - a(2)*b(1), a(2)*b(0) - a(0)*b(2), a(0)*b(1) - a(1)*b(0))
+def qMul(a, b):
+    real=a(0)*b(0) - dot(a.getRange(1,4), b.getRange(1,4))
+    c=a(0)*b + b(0)*a + cross(a.getRange(1,4), b.getRange(1,4))
+    return r(
+        real,
+        c(0),
+        c(1),
+        c(2)
+    )
+
+def rotate(axis, degrees, points):
+    """rotate a set of points by an angle around an arbitrary axis
+    Args:
+        axis (reidList): a 3d vector representing the axis around which to rotate the points
+        degrees (float, int): the degrees around the axis to rotate the points
+        points (reidList): The points, in form [[x0,y0,z0], [x1,y1,z1], ..., [xn, yn, zn]], to rotate
+    Returns:
+        reidList: a list of points, in the same format as the input points, that have been rotated.
+    """
+    #init output array
+    output=r(len(points))
+    #convert axis to a unit vector
+    ax=axis/sqrt((axis(0)**2 + axis(1)**2 + axis(2)**2))
+
+    #create rotation quaternion
+    ang=radians(degrees)
+    rQ=r(cos(ang/2), ax(0)*sin(ang/2), ax(1)*sin(ang/2), ax(2)*sin(ang/2))
+    CrQ=rQ*(-1)
+    CrQ.set(0, CrQ(0)*(-1))
+    counter=0
+    for p in points:
+        #create input quaternion (just add zero as the real part, have x, y, z as i, j, k coefs)
+        curPt=r(0, p(0), p(1), p(2))
+
+        #multiply to rotate
+        result=qMul(qMul(rQ, curPt), CrQ)
+        
+        output.set(counter, result)
+        counter += 1
+    
+    counter=0
+    for i in output:
+        output.set(counter, i.getRange(1,4))
+        counter += 1
+    return output
+
+
 #%%
 class Dye():
     def __init__(self, center, size=50, sides=6):
@@ -25,6 +76,8 @@ class Dye():
             size (int, optional): the side length of the square around the dye. Defaults to 50.
             sides (int, optional): The number of faces on the die. Defaults to 6.
         """
+
+        #TODO: implement different numbers of sides
         self.vecs=r(
             r(1,1,1),
             r(-1,1,1),
