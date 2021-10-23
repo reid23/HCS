@@ -8,6 +8,9 @@
 #it would also be nice to have a dict class
 #but that is definately way too much work
 #%%
+
+from graphics import *
+
 class reidList():
     def __init__(self, 
         e0=None, 
@@ -147,7 +150,7 @@ class reidList():
         return output
 
     def __str__(self):
-        output='<reidList Object> ['
+        output='['
         for i in range(self.len):
             output+=f'{self.get(i)}'
             if not (self.len-1)==i:
