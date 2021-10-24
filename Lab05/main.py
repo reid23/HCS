@@ -14,8 +14,14 @@ def score(cells, win):
     while True:
         p=win.getMouse()
         flag=False
+        bonusFlag=False
         for c in cells:
-            if c.inBounds(p):
+            if c.inBounds(p) and c.getName()!='total' and c.getName()!='bonus':
+                if c.getLocked()==True:
+                    if c.getName()=='yaht-\nzee':
+                        cells(6).lockScore()
+                    else:
+                        continue
                 c.lockScore()
                 flag=True
                 continue
@@ -23,6 +29,7 @@ def score(cells, win):
             for c in cells:
                 if not c.getLocked():
                     c.notLock()
+            cells(6).setLocked(False)
             break
 
 def rollDice(dyeList):
@@ -104,44 +111,62 @@ for c in cells:
 rollButton=Button(Point(w/2, h/2 - 100), 'ROLL!', r(100, 30), draw=True, win=win)
 msgbox=MsgBox(win, Point(w/2, h/2 + 150), r(200, 50), 'Click roll to begin.', draw=True)
 
-
+#TODO: make it run more loops if you get bonuses. Ie make it filled-up based instaed of count based.
 
 #*start game!
-rollButton.waitClick()
-msgbox.setText('Click the dice you would like roll again.\nClick roll to roll again.')
-for i in range(3):
-    rolls=r()
-    for d in dice:
-        if d.getPos()(1)<200:
-            d.roll()
-            rolls.append(d.reid())
-            d.setAttr(positionRel=r(0, 200))
-        else:
-            rolls.append(d.reid())
-    print(rolls)
-    for c in cells:
-        c.prelimCalc(rolls)
-    while True:
-        p=win.getMouse()
+for _ in range(13):
+    rollButton.waitClick()
+    msgbox.setText('Click the dice you would like roll again.\nClick roll to roll again.')
+    for i in range(3):
+        #roll dice and get values
+        rolls=r()
         for d in dice:
-            if d.clicked(p):
-                if d.getPos()(1)>200:
-                    d.setAttr(positionRel=r(0,-200))
-                else:
-                    d.setAttr(positionRel=r(0, 200))
+            if d.getPos()(1)<200:
+                d.roll()
+                rolls.append(d.reid())
+                d.setAttr(positionRel=r(0, 200))
+            else:
+                rolls.append(d.reid())
+        print(rolls)
+
+        #calculate score, at this point in time
+        for c in cells:
+            if c.getName()=='bonus':
                 continue
-        if rollButton.clicked(p):
-            break
-    
+            c.prelimCalc(rolls)
+        cells(6).prelimCalc(rolls, cells(-2).getBonus())
+
+        #on last iter, don't let the user change the dice anymore
+        if i==2:
+            continue
+        #wait for user to choose dice and click roll
+        while True:
+            p=win.getMouse()
+            for d in dice:
+                if d.clicked(p):
+                    if d.getPos()(1)>200:
+                        d.setAttr(positionRel=r(0,-200))
+                    else:
+                        d.setAttr(positionRel=r(0, 200))
+                    continue
+            if rollButton.clicked(p):
+                break
+        
+    msgbox.setText('Click the cell where you\nwould like to place this score.')
+
+    score(cells, win)
 
 
-score(cells, win)
+    diceIn(dice)
 
+    msgbox.setText('Next round!\nClick roll to begin.')
 
-diceIn(dice)
-
-
-
+cells(6).endOfGameBonusConvertIfStillNone()
+scores=r()
+for i in cells.getRange(0, 14):
+    scores.append(i.getVal())
+cells(-1).totalCellCalc(scores)
+msgbox.setText('Game over!  Final scores are shown.')
 
 
 

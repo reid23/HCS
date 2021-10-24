@@ -22,8 +22,16 @@ class ScoreCell():
         p.move(0, -50)
         self.value=Text(p, '-')
         drawn=False
+    def totalCellCalc(self, vals):
+        output=r()
+        for i in vals:
+            output.append(int(i))
+        self.value.setText(str(sum(output)))
+    def endOfGameBonusConvertIfStillNone(self):
+        if self.value.getText()=='-':
+            self.value.setText('0')
 
-    def _calc(self, dice):
+    def _calc(self, dice, other):
     #should have used a switch here...
     #switch statements have been added in python 3.10!
     #very exciting
@@ -41,7 +49,7 @@ class ScoreCell():
         elif label=='6s':
             return dice.count(6)*6
         elif label=='bonus':
-            pass
+            return other*100
         elif label=='three\nof a\nkind':
             c=dice.toCounter()
             for i in c:
@@ -58,9 +66,9 @@ class ScoreCell():
 
         elif label=='full\nhouse':
             c=dice.toCounter()
-            if not len(c)==2:
+            if not(len(c)==2 or len(c)==1):
                 return 0
-            if c(0)(1)==2 or c(0)(1)==3:
+            if c(0)(1)==2 or c(0)(1)==3 or c(0)(1)==5:
                 return 25
             return 0
 
@@ -79,10 +87,8 @@ class ScoreCell():
         elif label=='yaht-\nzee':
             if len(dice.toCounter())==1:
                 if self.yahtzeeUsed==False:
-                    self.yahtzeeUsed=True
                     return 50
-                self.bonus += 1
-                return 0
+                return '+1b'
             return 0
         elif label=='total':
             pass
@@ -109,21 +115,34 @@ class ScoreCell():
     def lockScore(self):
         self.locked=True
         self.value.setTextColor('black')
-    
-    def prelimCalc(self, dice):
-        if not self.locked:
+        if self.label.getText()=='yaht-\nzee' and self.value.getText()=='50':
+            self.yahtzeeUsed=True
+        if self.yahtzeeUsed==True:
+            self.value.setText('50')
+            self.bonus+=1
+    def getName(self):
+        return self.label.getText()
+    def prelimCalc(self, dice, other=None):
+        if not self.locked or self.label.getText()=='yaht-\nzee':
             self.value.setTextColor('red')
-            self.value.setText(str(self._calc(dice)))
+            self.value.setText(str(self._calc(dice, other)))
     def notLock(self):
         self.locked=False
+        if self.label.getText()=='bonus':
+            self.value.setTextColor('black')
+            if not self.value.getText()=='0':
+                self.value.setText(int(self.value.getText())-100)
+            return
         self.value.setText('-')
         self.value.setTextColor('black')
+    def setLocked(self, locked):
+        self.locked=locked
     def getLocked(self):
         return self.locked
     def getBonus(self):
         return self.bonus
     def getVal(self):
-        return self.value
+        return self.value.getText()
 
 #%%
 class Button():
@@ -239,7 +258,8 @@ class Dye():
         self.drawn=True
         self.win=win
     def roll(self):
-        self.curVal=rand(1,self.sides+1, 1)
+        #self.curVal=rand(1,self.sides+1, 1)
+        self.curVal=6
         self.number.setText(str(self.curVal))
         if self.drawn:
             self.draw(self.win)
