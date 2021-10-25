@@ -19,41 +19,25 @@ def score(cells, win, p=None):
             if quitButton.clicked(p):
                 exit()
             for c in cells:
-                if c.inBounds(p) and c.getName()!='total' and c.getName()!='bonus':
-                    if c.getLocked()==True:
-                        if c.getName()=='yaht-\nzee':
-                            cells(6).lockScore()
-                        else:
-                            continue
+                if c.inBounds(p) and c.getName()!='total' and c.getLocked()==False:
                     c.lockScore()
                     flag=True
-                    continue
             if flag:
                 for c in cells:
-                    if c.getName()=='yaht-\nzee':
-                        c.resetYahtzee()
-                    elif not c.getLocked():
+                    if not c.getLocked():
                         c.notLock()
-                cells(6).setLocked(False)
                 break
     else:
+        if quitButton.clicked(p):
+            exit()
         for c in cells:
-            if c.inBounds(p) and c.getName()!='total' and c.getName()!='bonus' and c.getYahtzeeUsedAndIsZero()==False:
-                if c.getLocked()==True:
-                    if c.getName()=='yaht-\nzee':
-                        cells(6).lockScore()
-                    else:
-                        continue
+            if c.inBounds(p) and c.getName()!='total' and c.getLocked()==False:
                 c.lockScore()
                 flag=True
-                continue
         if flag:
             for c in cells:
-                if c.getName()=='yaht-\nzee':
-                    c.resetYahtzee()
-                elif not c.getLocked():
+                if not c.getLocked():
                     c.notLock()
-            cells(6).setLocked(False)
         return flag
 
 def rollDice(dyeList):
@@ -71,12 +55,10 @@ def diceOut(dyeList):
 
 def diceIn(dyeList):
     for d in dyeList:
-        d.setAttr(positionRel=r(0,-200))
+        d.setAttr(positionAbs=r(d.getPos()(0),150))
 
 def getDone(cells):
     for c in cells:
-        if c.getName()=='bonus' or c.getName()=='total':
-            continue
         if c.getVal()=='-':
             return False
     return True
@@ -148,11 +130,11 @@ for d in dice:
 #width of each cell: 40
 #width of all cells: 520
 #half of all cell width: 260
-types=r('1s', '2s', '3s', '4s', '5s', '6s', 'bonus', 'three\nof a\nkind', 'four\nof a\nkind', 'full\nhouse', 'small\nstra-\night', 'large\nstra-\night', 'chance', 'yaht-\nzee', 'total')
+types=r('1s', '2s', '3s', '4s', '5s', '6s', 'three\nof a\nkind', 'four\nof a\nkind', 'full\nhouse', 'small\nstra-\night', 'large\nstra-\night', 'chance', 'yaht-\nzee', 'total')
 cells=r()
 print('type of reidList object:', type(cells))
 for t in types:
-    cells.append(ScoreCell(Point(((w/2)+((len(cells)-7)*40)), h-150), t))
+    cells.append(ScoreCell(Point(((w/2)+((len(cells)-6.5)*40)), h-150), t))
 for c in cells:
     c.draw(win)
 
@@ -169,6 +151,9 @@ gameTracker.draw(win)
 gameTrackerLine.draw(win)
 gamesText.draw(win)
 scoreText.draw(win)
+
+bonusMessageDrawn=False
+bonusMessage=Text(Point(w/2, h/2), 'Nice! 1s-6s sum to >=63 points.\n+35 bonus points.')
 
 quitButton=Button(Point(35, 10), 'Quit', color='red', draw=True, win=win)
 
@@ -187,24 +172,33 @@ while True:
                 exit()
             if rollButton.clicked(p):
                 break
-        msgbox.setText('Click the dice you would like roll again.\nClick roll to roll again.\nOr click a cell to score your roll now.')
+        msgbox.setText('Click the dice you would like to keep.\nClick roll to roll again.\nOr click a cell to score your roll now.')
+        firstRoll=True
         for i in range(3):
             #roll dice and get values
             rolls=r()
             for d in dice:
-                if d.getPos()(1)<200:
+                if d.getPos()(1)>200 or firstRoll==True:
+                    if firstRoll:
+                        d.setAttr(positionRel=r(0, 200))
                     d.roll()
                     rolls.append(d.reid())
-                    d.setAttr(positionRel=r(0, 200))
                 else:
                     rolls.append(d.reid())
+            firstRoll=False
 
             #calculate score, at this point in time
             for c in cells:
-                if c.getName()=='bonus':
-                    continue
                 c.prelimCalc(rolls)
-            cells(6).prelimCalc(rolls, cells(-2).getBonus())
+            #calculate and set total cell's value
+            #not in prelimCalc because it requires external data other than dice
+            curScores=r()
+            for c in cells.getRange(0, 13):
+                if c.getVal()=='-' or c.getVal()=='None':
+                    pass
+                else:
+                    curScores.append(int(c.getVal()))
+            cells(-1).setValue('?')
 
             #on last iter, don't let the user change the dice anymore
             if i==2:
@@ -233,25 +227,45 @@ while True:
             
         if not skipEndScoringFlag:
             msgbox.setText('Click the cell where you\nwould like to place this score.')
-
             score(cells, win)
+        curScores=0
+        for c in cells.getRange(0, 13):
+            if c.getVal()=='-' or c.getVal()=='None':
+                pass
+            else:
+                curScores+=int(c.getVal())
+        cells(-1).setValue(str(curScores))
 
 
         diceIn(dice)
 
         msgbox.setText('Next round!\nClick roll to begin.')
 
-    cells(6).endOfGameBonusConvertIfStillNone()
-    cells(-2).endOfGameFixYahtzeeScore()
-    scores=r()
-    for i in cells.getRange(0, 14):
-        scores.append(i.getVal())
-    cells(-1).totalCellCalc(scores)
+    #*end of game stuff
+    
+    #upper bonus:
+    upperSum=0
+    for c in cells.getRange(0, 6):
+        upperSum+=int(c.getVal())
+    if upperSum>=63:
+        bonusMessage.draw(win)
+        bonusMessageDrawn=True
 
+    #calculate total score again
+    curScores=0
+    for c in cells.getRange(0, 13):
+        if c.getVal()=='-' or c.getVal()=='None':
+            pass
+        else:
+            curScores+=int(c.getVal())
+    if bonusMessageDrawn:
+        curScores+=35
+    cells(-1).setValue(str(curScores))
+    
     games += 1
     gamesTextVar='Games Played: ' + str(games)
-    if int(cells(-1).getVal())>best:
-        best=int(cells(-1).getVal())
+    if curScores>best:
+        best=curScores
     scoreTextVar='Best Score: ' + str(best)
     gamesText.setText(gamesTextVar)
     scoreText.setText(scoreTextVar)
@@ -262,5 +276,3 @@ while True:
         c.reset()
     for d in dice:
         d.reset()
-
-win.getMouse()

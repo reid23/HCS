@@ -15,42 +15,19 @@ class ScoreCell():
         p.move(0, 15)
         self.label=Text(p, label)
         self.locked=False
-        self.bonus=0
         self.yahtzeeUsed=False
-        self.yahtzeeUsedAndIsZero=False
+        self.yahtzeeUsable=True
         
         p.move(0, -50)
         self.value=Text(p, '-')
-        drawn=False
+        self.drawn=False
     def reset(self):
         self.locked=False
-        self.bonus=0
         self.yahtzeeUsed=False
-        self.yahtzeeUsedAndIsZero=False
-    def resetYahtzee(self):
+        self.yahtzeeUsable=True
         self.value.setTextColor('black')
-        if self.yahtzeeUsed:
-            self.value.setText('50')
-        elif self.yahtzeeUsedAndIsZero:
-            self.value.setText('0')
-        else:
-            self.value.setText('-')
 
-    def totalCellCalc(self, vals):
-        output=r()
-        for i in vals:
-            output.append(int(i))
-        self.value.setText(str(sum(output)))
-        return str(sum(output))
-    def endOfGameBonusConvertIfStillNone(self):
-        if self.value.getText()=='-':
-            self.value.setText('0')
-    def endOfGameFixYahtzeeScore(self):
-        self.value.setTextColor('black')
-        if self.yahtzeeUsed==True:
-            self.value.setText('50')
-
-    def _calc(self, dice, other):
+    def _calc(self, dice):
     #should have used a switch here...
     #switch statements have been added in python 3.10!
     #very exciting
@@ -67,8 +44,6 @@ class ScoreCell():
             return dice.count(5)*5
         elif label=='6s':
             return dice.count(6)*6
-        elif label=='bonus':
-            return other*100
         elif label=='three\nof a\nkind':
             c=dice.toCounter()
             for i in c:
@@ -104,78 +79,63 @@ class ScoreCell():
             print(dice)
             return sum(dice)
         elif label=='yaht-\nzee':
-            if len(dice.toCounter())==1:
-                if self.yahtzeeUsed==False:
-                    return 50
-                return '+1b'
+            if len(dice.toCounter())==1 and self.value.getText()!='0':
+                if self.yahtzeeUsed:
+                    return int(self.value.getText())+100
+                return 50
             return 0
         elif label=='total':
             pass
-    def getYahtzeeUsedAndIsZero(self):
-        return self.yahtzeeUsedAndIsZero
     def draw(self, win):
-        self.line.draw(win)
-        self.boundary.draw(win)
-        self.label.draw(win)
-        self.value.draw(win)
+        if self.drawn==False:
+            self.line.draw(win)
+            self.boundary.draw(win)
+            self.label.draw(win)
+            self.value.draw(win)
         self.drawn=True
     def setValue(self, val):
         self.value.setText(str(val))
-        if self.drawn: 
-            self.draw()
+    def getVal(self):
+        return self.value.getText()
+    def getName(self):
+        return self.label.getText()
     def undraw(self):
-        self.line.undraw()
-        self.boundary.undraw()
-        self.label.undraw()
-        self.value.undraw()
-        self.drawn=True
+        if self.drawn:
+            self.line.undraw()
+            self.boundary.undraw()
+            self.label.undraw()
+            self.value.undraw()
+        self.drawn=False
     def inBounds(self, p):
         if abs(p.getX()-self.center.getX()) <= 20 and abs(p.getY()-self.center.getY()) <= 50:
             return True
         return False
     def lockScore(self):
+        if self.value.getText()=='0':
+            self.yahtzeeUsable=False
+        self.yahtzeeUsed=True
         self.locked=True
         self.value.setTextColor('black')
-        if self.value.getText()=='0':
-            self.yahtzeeUsedAndIsZero=True
-        if self.label.getText()=='yaht-\nzee' and self.value.getText()=='50':
-            self.yahtzeeUsed=True
-        if self.yahtzeeUsedAndIsZero:
-            self.value.setText('0')
-            self.bonus=0
-        elif self.yahtzeeUsed==True:
-            print(self.value.getText())
-            self.value.setText('50')
-            self.bonus+=1
-    def getName(self):
-        return self.label.getText()
-    def prelimCalc(self, dice, other=None):
-        if not self.locked or self.label.getText()=='yaht-\nzee':
-            if self.yahtzeeUsedAndIsZero==True:
-                return
+    def prelimCalc(self, dice):
+        if not self.getLocked():
             self.value.setTextColor('red')
-            self.value.setText(str(self._calc(dice, other)))
+            self.value.setText(str(self._calc(dice)))
     def notLock(self):
-        self.locked=False
-        if self.label.getText()=='bonus':
-            self.value.setTextColor('black')
-            if self.value.getText()=='0' or self.value.getText()=='100':
-                self.value.setText('-')
-            elif self.value.getText()=='-':
-                pass
-            else:
-                self.value.setText(str(int(self.value.getText())-100))
-            return
-        self.value.setText('-')
         self.value.setTextColor('black')
-    def setLocked(self, locked):
-        self.locked=locked
+        self.locked=False
+        
+        #TODO: sort out this --if-- garbage
+        if self.label.getText()=='yaht-\nzee':
+            if self.value.getText()=='0':
+                if not self.yahtzeeUsable:
+                    return
+            elif self.value.getText()=='50':
+                pass
+        self.value.setText('-')
     def getLocked(self):
+        if self.getName()=='yaht-\nzee':
+            return not self.yahtzeeUsable
         return self.locked
-    def getBonus(self):
-        return self.bonus
-    def getVal(self):
-        return self.value.getText()
 
 #%%
 class Button():
@@ -326,7 +286,7 @@ class Dye():
             movement=endPos-curPos
             self.border.move(movement(0), movement(1))
             self.center.move(movement(0), movement(1))
-            self.number.move(positionAbs(0), positionAbs(1))
+            self.number.move(movement(0), movement(1))
         if self.drawn:
             self.draw(self.win)
     def getPos(self):
@@ -337,7 +297,7 @@ class Dye():
         return False
 
 #%%
-class MsgBox():
+class MsgBox(): #i've been spending too much time in ahk
     def __init__(self, win, center, size, text='message', color='white', draw=False):
         self.win=win
         self.center=center
@@ -366,7 +326,6 @@ class MsgBox():
         self.border.undraw()
         self.text.undraw()
         self.drawn=False
-
     #getters and setters
     def setText(self, text):
         self.text.setText(text)
