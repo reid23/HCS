@@ -11,25 +11,44 @@ class ScoreCell():
         self.center=center
         self.boundary=Rectangle(Point(center.getX()-20, center.getY()-50), Point(center.getX()+20, center.getY()+50))
         self.line=Line(Point(center.getX()-20, center.getY()-20), Point(center.getX()+20, center.getY()-20))
-        print(type(center))
         p=center.clone()
         p.move(0, 15)
         self.label=Text(p, label)
         self.locked=False
         self.bonus=0
         self.yahtzeeUsed=False
+        self.yahtzeeUsedAndIsZero=False
         
         p.move(0, -50)
         self.value=Text(p, '-')
         drawn=False
+    def reset(self):
+        self.locked=False
+        self.bonus=0
+        self.yahtzeeUsed=False
+        self.yahtzeeUsedAndIsZero=False
+    def resetYahtzee(self):
+        self.value.setTextColor('black')
+        if self.yahtzeeUsed:
+            self.value.setText('50')
+        elif self.yahtzeeUsedAndIsZero:
+            self.value.setText('0')
+        else:
+            self.value.setText('-')
+
     def totalCellCalc(self, vals):
         output=r()
         for i in vals:
             output.append(int(i))
         self.value.setText(str(sum(output)))
+        return str(sum(output))
     def endOfGameBonusConvertIfStillNone(self):
         if self.value.getText()=='-':
             self.value.setText('0')
+    def endOfGameFixYahtzeeScore(self):
+        self.value.setTextColor('black')
+        if self.yahtzeeUsed==True:
+            self.value.setText('50')
 
     def _calc(self, dice, other):
     #should have used a switch here...
@@ -92,12 +111,14 @@ class ScoreCell():
             return 0
         elif label=='total':
             pass
+    def getYahtzeeUsedAndIsZero(self):
+        return self.yahtzeeUsedAndIsZero
     def draw(self, win):
         self.line.draw(win)
         self.boundary.draw(win)
         self.label.draw(win)
         self.value.draw(win)
-        drawn=True
+        self.drawn=True
     def setValue(self, val):
         self.value.setText(str(val))
         if self.drawn: 
@@ -115,23 +136,35 @@ class ScoreCell():
     def lockScore(self):
         self.locked=True
         self.value.setTextColor('black')
+        if self.value.getText()=='0':
+            self.yahtzeeUsedAndIsZero=True
         if self.label.getText()=='yaht-\nzee' and self.value.getText()=='50':
             self.yahtzeeUsed=True
-        if self.yahtzeeUsed==True:
+        if self.yahtzeeUsedAndIsZero:
+            self.value.setText('0')
+            self.bonus=0
+        elif self.yahtzeeUsed==True:
+            print(self.value.getText())
             self.value.setText('50')
             self.bonus+=1
     def getName(self):
         return self.label.getText()
     def prelimCalc(self, dice, other=None):
         if not self.locked or self.label.getText()=='yaht-\nzee':
+            if self.yahtzeeUsedAndIsZero==True:
+                return
             self.value.setTextColor('red')
             self.value.setText(str(self._calc(dice, other)))
     def notLock(self):
         self.locked=False
         if self.label.getText()=='bonus':
             self.value.setTextColor('black')
-            if not self.value.getText()=='0':
-                self.value.setText(int(self.value.getText())-100)
+            if self.value.getText()=='0' or self.value.getText()=='100':
+                self.value.setText('-')
+            elif self.value.getText()=='-':
+                pass
+            else:
+                self.value.setText(str(int(self.value.getText())-100))
             return
         self.value.setText('-')
         self.value.setTextColor('black')
@@ -246,10 +279,13 @@ class Dye():
         self.center=center.clone()
         self.size=size
         self.sides=sides
-        self.curVal=1
+        self.curVal='?'
         self.border=Rectangle(Point(center.getX()-(size/2), center.getY()-(size/2)), Point(center.getX()+(size/2), center.getY()+(size/2)))
         self.number=Text(self.center, str(self.curVal))
         self.drawn=False
+    def reset(self):
+        self.curVal='?'
+        self.number=Text(self.center, self.curVal)
     def draw(self, win):
         if self.drawn:
             self.undraw()
@@ -258,7 +294,7 @@ class Dye():
         self.drawn=True
         self.win=win
     def roll(self):
-        #self.curVal=rand(1,self.sides+1, 1)
+        self.curVal=rand(1,self.sides+1, 1)
         self.curVal=6
         self.number.setText(str(self.curVal))
         if self.drawn:
