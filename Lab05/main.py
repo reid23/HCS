@@ -45,19 +45,6 @@ def score(cells, win, p=None):
                     c.notLock()
         return flag
 
-def rollDice(dyeList):
-    output=r(length=len(dice))
-    counter=0
-    for d in dyeList:
-        d.roll()
-        output.set(counter, d.reid())
-        counter+=1
-    return output
-
-def diceOut(dyeList):
-    for d in dyeList:
-        d.setAttr(positionRel=r(0,200))
-
 def diceIn(dyeList):
     for d in dyeList:
         d.setAttr(positionAbs=r(d.getPos()(0),150))
