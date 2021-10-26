@@ -1,8 +1,8 @@
-from reidList import reidList as r
-from reidList import reidList
+from time import sleep
+from ReidList import ReidList as r
+from ReidList import ReidList
 from graphics import *
 from math import *
-from random import randrange
 
 class Cube():
     def __init__(self):
@@ -32,14 +32,14 @@ class Cube():
         return sqrt((p1(0)-p2(0))**2 + (p1(1)-p2(1))**2 + (p1(2)-p2(2))**2)
 
 
-    def draw(self, dAng, win):
-        self._lines(dAng)
+    def draw(self, dAng, win, axis=r(1,1,1)):
+        self._lines(dAng, axis)
         for l in self.lines:
             l.draw(win)
     def undraw(self):
         for l in self.lines:
             l.undraw()
-    def _lines(self, dAng):
+    def _lines(self, dAng, axis):
         #sort corners by z pos
         '''
         The legit way, that also works with dice with more than 6 sides:
@@ -55,7 +55,7 @@ class Cube():
         flat on its face, but in that case the extra points will be underneath the
         existing points and it won't be visible to the veiwer.
         '''
-        self._rotateQ(r(1,1,1), dAng)
+        self._rotateQ(axis, dAng)
         corners=self._sort(self.corners, 2)
         # print('length of corners[]:', len(self.corners))
         # print('corners:', corners)
@@ -99,6 +99,8 @@ class Cube():
         Returns:
             reidList: a list of points, in the same format as the input points, that have been rotated.
         """
+        #credits for helping me understand: http://www.euclideanspace.com/maths/algebra/realNormedAlgebra/quaternions/transforms/derivations/vectors/index.htm
+
         #init output array
         output=r(length=len(self.corners))
         #convert axis to a unit vector
@@ -129,12 +131,50 @@ class Cube():
     def _rotateRodrigues(self, axis, degrees):
         #the *slooooooooowest* algorithm in aaaaAAAAAALLLLllll of mexico
         #actually pretty efficient though
+
+        #welp for some reason this doesn't work
+        #it returns all the right points but when I try it in place of rotateQ nothing shows up
+        #oh well i guess I'm using rotateQ
         output=r()
         ax=axis/sqrt((axis(0)**2 + axis(1)**2 + axis(2)**2))
         for p in self.corners:
             output.append(p*cos(radians(degrees)) + self._cross(ax, p) + ax*self._dot(ax, p)*(1-cos(radians(degrees))))
 
         self.corners=output
+    
+    def _getAxisAngle(self, z, y, x): #yaw, pitch, roll (rotation about z, y, x)
+        """get axis-angle representation from yaw, roll, pitch angles
+
+        Args:
+            z (int or float): (degrees) angle to rotate around z axis (yaw)
+            y (int or float): (degrees) angle to rotate around y axis (roll)
+            x (int or float): (degrees) angle to rotate around x axis (pitch)
+
+        Returns:
+            ReidList: [angle, [x, y, z]], angle and axis vector
+        """
+        #thanks to https://math.stackexchange.com/questions/1560039/closed-formula-to-transform-roll-pitch-yaw-angles-into-axis-angle-representation
+        #I can't figure all this math on my own, too much, I know too little
+        #i tried struggling through the (excellent) 3b1b/ben eater quaternion series, but it's still sooooo confusing
+        #oh well, good thing i don't have to understand it to make it work
+        #thank you math stack exchange
+        z=radians(z)
+        y=radians(y)
+        x=radians(x)
+
+        c1 = cos(z / 2)
+        c2 = cos(x / 2)
+        c3 = cos(y / 2)
+        s1 = sin(z / 2)
+        s2 = sin(x / 2)
+        s3 = sin(y / 2)
+
+        angle = 2 * acos(c1*c2*c3 - s1*s2*s3)
+        x = s1*s2*c3 + c1*c2*s3
+        y = s1*c2*c3 + c1*s2*s3
+        z = c1*s2*c3 - s1*c2*s3
+
+        return r(degrees(angle), r(x,y,z))
 
 
 
@@ -145,17 +185,20 @@ class Cube():
 # five=r(0, -90, randrange(0, 360))
 # six=r(0, 180, randrange(0, 360))
 
-win=GraphWin('animation testing', 1500, 1500, autoflush=False)
+win=GraphWin('animation testing', 800, 800, autoflush=True) #autoflush=True for running on my mac, for some reason
 win.setCoords(-3,-3,3,3)
-
 
 cube=Cube()
 
-from time import sleep
+a=cube._getAxisAngle(90, 90, 0)
+ang=a(0)
+ax=a(1)
+print(ax, ang)
 
 for _ in range(10000):
-    cube.draw(10, win)
+    cube.draw(10, win, axis=ax)
     win.flush()
+    sleep(1) #needed if ruuning on mac/with autoflush=True
     cube.undraw()
 
 

@@ -244,6 +244,14 @@ class ReidList():
         return output
     
     def count(self, x):
+        """Count how many elements of self are equal to x, y
+
+        Args:
+            x (any): the value to match
+
+        Returns:
+            int: the number of values equal to x in self.
+        """
         output=0
         for i in self:
             if i==x:
@@ -253,6 +261,11 @@ class ReidList():
 
     #like collections.Counter
     def toCounter(self):
+        """outputs a list that's formatted like a dict with the equivalent purpose of collections.Counter.
+
+        Returns:
+            ReidList: the output list.
+        """
         ordered=self.sort()
         output=ReidList()
         counted=ReidList()
