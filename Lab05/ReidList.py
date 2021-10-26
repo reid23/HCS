@@ -1,6 +1,6 @@
 #moving this to a different file because
 #it's taking up a bunch of space
-#and also now I can do import reidList as r
+#and also now I can do import ReidList as r
 
 #should have done this earlier
 #going to learn lists soon anyways :(
@@ -8,7 +8,7 @@
 #it would also be nice to have a dict class
 #but that is definately way too much work
 #%%
-class reidList():
+class ReidList():
     def __init__(self, 
         e0=None, 
         e1=None, 
@@ -110,7 +110,7 @@ class reidList():
         e97=None, 
         e98=None, 
         e99=None, length=-1):
-        """constructor for reidList
+        """constructor for ReidList
 
         Args:
             *elements: the elements to put in the list
@@ -145,7 +145,7 @@ class reidList():
             counter+=1
 
     def __repr__(self):
-        output='reidList('
+        output='ReidList('
         for i in range(self.len):
             output+=repr(self.get(i))
             if not (self.len-1)==i:
@@ -204,13 +204,13 @@ class reidList():
         self.len+=1
 
     def getRange(self, start: int, stop: int, step=1):
-        output=reidList()
+        output=ReidList()
         for i in range(start, stop, step):
             output.append(self.get(i))
         return output
 
     def vecMatMul(self, mat):
-        output=reidList(length=self.len)
+        output=ReidList(length=self.len)
         assert len(mat)==self.len, 'matrix had incorrect shape.'
         counter=0
         for i in mat:
@@ -237,7 +237,7 @@ class reidList():
         for i in range(len(output)-1):
             for j in range(len(output)-i-1):
                 if output(j) > output(j+1) :
-                    outputJ=output(j) #because we can't do multiple assignment with reidList elements
+                    outputJ=output(j) #because we can't do multiple assignment with ReidList elements
                     output.set(j, output(j+1))
                     output.set(j+1, outputJ)
         return output
@@ -253,14 +253,14 @@ class reidList():
     #like collections.Counter
     def toCounter(self):
         ordered=self.sort()
-        output=reidList()
-        counted=reidList()
+        output=ReidList()
+        counted=ReidList()
         for i in ordered:
             if counted.exists(i):
-                output.set(-1, output(-1)+reidList(0, 1))
+                output.set(-1, output(-1)+ReidList(0, 1))
             else:
                 counted.append(i)
-                output.append(reidList(i, 1))
+                output.append(ReidList(i, 1))
         return output
                 
     def delElement(self, element):
@@ -275,19 +275,19 @@ class reidList():
         return self.len
 
     def __add__(self, y):
-        """defines how reidLists are added
+        """defines how ReidLists are added
 
         Args:
-            y (int or float, or other reidList with the same shape): the variable to be added.  If it's a single value, it must be the same 
+            y (int or float, or other ReidList with the same shape): the variable to be added.  If it's a single value, it must be the same 
         """
         if type(y)==int or type(y)==float or type(y)==str:
-            output=reidList(length=self.len)
+            output=ReidList(length=self.len)
             for i in range(self.len):
                 output.set(i, self.get(i)+y)
         else:
-            #in this case it's another reidList object
+            #in this case it's another ReidList object
             assert len(y)==len(self), 'arrays are different shapes, computation could not be completed'
-            output=reidList(length=self.len)
+            output=ReidList(length=self.len)
             for i in range(self.len):
                 output.set(i, self.get(i)+y.get(i))
         return output
@@ -296,43 +296,43 @@ class reidList():
         """defines how ReidLists are subtracted.  Same as __add__
 
         Args:
-            y (int, float, str, or other reidList with the same shape): the thing to be added.  if it's a single value, it must be the same type as the reidList elements
+            y (int, float, str, or other ReidList with the same shape): the thing to be added.  if it's a single value, it must be the same type as the ReidList elements
 
         Returns:
-            output (reidList): the result of the calculation
+            output (ReidList): the result of the calculation
         """
         if type(y)==int or type(y)==float or type(y)==str:
-            output=reidList(length=self.len)
+            output=ReidList(length=self.len)
             for i in range(self.len):
                 output.set(i, self.get(i)-y)
         else:
-            #in this case it's another reidList object
+            #in this case it's another ReidList object
             assert len(y)==len(self), 'arrays are different shapes, computation could not be completed'
-            output=reidList(length=self.len)
+            output=ReidList(length=self.len)
             for i in range(self.len):
                 output.set(i, self.get(i)-y.get(i))
         return output
     def __mul__(self, y):
         if type(y)==int or type(y)==float or type(y)==str:
-            output=reidList(length=self.len)
+            output=ReidList(length=self.len)
             for i in range(self.len):
                 output.set(i, self.get(i)*y)
         else:
-            #in this case it's another reidList object
+            #in this case it's another ReidList object
             assert len(y)==len(self), 'arrays are different shapes, computation could not be completed'
-            output=reidList(length=self.len)
+            output=ReidList(length=self.len)
             for i in range(self.len):
                 output.set(i, self.get(i)*y.get(i))
         return output
     def __truediv__(self, y):
         if type(y)==int or type(y)==float or type(y)==str:
-            output=reidList(length=self.len)
+            output=ReidList(length=self.len)
             for i in range(self.len):
                 output.set(i, self.get(i)/y)
         else:
-            #in this case it's another reidList object
+            #in this case it's another ReidList object
             assert len(y)==len(self), 'arrays are different shapes, computation could not be completed'
-            output=reidList(length=self.len)
+            output=ReidList(length=self.len)
             for i in range(self.len):
                 output.set(i, self.get(i)/y.get(i))
         return output
@@ -340,31 +340,31 @@ class reidList():
         """defines floor division, works elementwise
 
         Args:
-            y (int, float, or reidList): the thing to divide by
+            y (int, float, or ReidList): the thing to divide by
 
         Returns:
-            output (reidList): the quotient
+            output (ReidList): the quotient
         """
         if type(y)==int or type(y)==float:
-            output=reidList(length=self.len)
+            output=ReidList(length=self.len)
             for i in range(self.len):
                 output.set(i, self.get(i)//y)
         else:
-            #in this case it's another reidList object
+            #in this case it's another ReidList object
             assert len(y)==len(self), 'arrays are different shapes, computation could not be completed'
-            output=reidList(length=self.len)
+            output=ReidList(length=self.len)
             for i in range(self.len):
                 output.set(i, self.get(i)//y.get(i))
         return output
     def __pow__(self, y):
         if type(y)==int or type(y)==float:
-            output=reidList(length=self.len)
+            output=ReidList(length=self.len)
             for i in range(self.len):
                 output.set(i, self.get(i)**y)
         else:
-            #in this case it's another reidList object
+            #in this case it's another ReidList object
             assert len(y)==len(self), 'arrays are different shapes, computation could not be completed'
-            output=reidList(length=self.len)
+            output=ReidList(length=self.len)
             for i in range(self.len):
                 output.set(i, self.get(i)**y.get(i))
         return output
@@ -376,7 +376,7 @@ class reidList():
         elif y==None:
             return False #if we'e got here... it can't be None.  Because self exists.
         else:
-            #in this case it's another reidList object
+            #in this case it's another ReidList object
             for i in range(self.len):
                 if not self.get(i)==y.get(i):
                     return False
@@ -391,5 +391,5 @@ class reidList():
     #again--numpy coming soon, hopefully
 # %%
 if __name__=='__main__':
-    print(reidList(5,5,5,1,1).sort())
-    print(reidList(1,5,2,5,7).sort())
+    print(ReidList(5,5,5,1,1).sort())
+    print(ReidList(1,5,2,5,7).sort())
