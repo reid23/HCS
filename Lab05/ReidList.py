@@ -186,11 +186,14 @@ class ReidList():
     #and you know what we say in P&D:
     # > Good enough, is!
     def get(self, element):
-        if element>=0:
-            return eval(f'self.elements{element}')
-        else:
-            #for getting from the end of the list
-            return eval(f'self.elements{self.len+element}')
+        try: #for more useful errors
+            if element>=0:
+                return eval(f'self.elements{element}')
+            else:
+                #for getting from the end of the list
+                return eval(f'self.elements{self.len+element}')
+        except AttributeError:
+            raise IndexError(f'List index out of range. element {element} does not exist in list of length {self.len}.')
 
     def set(self, element, value):
         if element >=0:
