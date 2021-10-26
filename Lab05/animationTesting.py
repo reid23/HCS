@@ -3,6 +3,7 @@ from ReidList import ReidList as r
 from ReidList import ReidList
 from graphics import *
 from math import *
+from random import randrange as rand
 
 class Cube():
     def __init__(self):
@@ -189,19 +190,26 @@ win=GraphWin('animation testing', 800, 800, autoflush=True) #autoflush=True for 
 win.setCoords(-3,-3,3,3)
 
 cube=Cube()
+cube.draw(0, win, axis=r(1, 1, 1))
 
-a=cube._getAxisAngle(90, 90, 0)
+probableTopAngle=rand(-90, 90)
+print('Probable top angle:', probableTopAngle)
+a=cube._getAxisAngle(180, 90, probableTopAngle)
 ang=a(0)
 ax=a(1)
 print(ax, ang)
 
-for _ in range(10000):
+sleep(5)
+cube.undraw()
+
+for _ in range(round(ang/10)):
     cube.draw(10, win, axis=ax)
     win.flush()
-    sleep(1) #needed if ruuning on mac/with autoflush=True
+    sleep(0.3) #needed if ruuning on mac/with autoflush=True
     cube.undraw()
 
-
+cube.draw(0, win)
+win.getMouse()
 
 
 
