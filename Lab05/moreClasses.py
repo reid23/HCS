@@ -16,7 +16,6 @@ class ScoreCell():
         self.label=Text(p, label)
         self.locked=False
         self.yahtzeeUsed=False
-        self.yahtzeeUsable=True
         
         p.move(0, -50)
         self.value=Text(p, '-')
@@ -24,8 +23,8 @@ class ScoreCell():
     def reset(self):
         self.locked=False
         self.yahtzeeUsed=False
-        self.yahtzeeUsable=True
         self.value.setTextColor('black')
+        self.value.setText('-')
 
     def _calc(self, dice):
     #should have used a switch here...
@@ -81,7 +80,10 @@ class ScoreCell():
         elif label=='yaht-\nzee':
             if len(dice.toCounter())==1 and self.value.getText()!='0':
                 if self.yahtzeeUsed:
-                    return int(self.value.getText())+100
+                    if self.value.config['fill']=='black':
+                        return int(self.value.getText())+100
+                    else:
+                        return int(self.value.getText())
                 return 50
             return 0
         elif label=='total':
@@ -111,30 +113,41 @@ class ScoreCell():
             return True
         return False
     def lockScore(self):
-        if self.value.getText()=='0':
-            self.yahtzeeUsable=False
-        self.yahtzeeUsed=True
-        self.locked=True
         self.value.setTextColor('black')
-    def prelimCalc(self, dice):
-        if not self.getLocked():
-            self.value.setTextColor('red')
-            self.value.setText(str(self._calc(dice)))
-    def notLock(self):
-        self.value.setTextColor('black')
-        self.locked=False
-        
-        #TODO: sort out this --if-- garbage
         if self.label.getText()=='yaht-\nzee':
             if self.value.getText()=='0':
-                if not self.yahtzeeUsable:
-                    return
-            elif self.value.getText()=='50':
-                pass
+                self.locked=True
+                return
+            else:
+                self.yahtzeeUsed=True
+                self.locked=False
+                return
+        self.locked=True
+    def prelimCalc(self, dice):
+        if not self.getLocked():
+            self.value.setText(str(self._calc(dice)))
+            self.value.setTextColor('red')
+    def notLock(self):
+        if self.label.getText()=='yaht-\nzee':
+            if self.locked:
+                self.value.setTextColor('black')
+                return
+            if self.value.getText()=='50' and self.yahtzeeUsed:
+                self.value.setTextColor('black')
+                return
+            #for this line
+            #please let me just use value.config[item]
+            #there's no getColor() method, and I really don't want to create a separate variable to track it
+            if int(self.value.getText())>=150 and self.value.config['fill']!='black':
+                self.value.setText(str(int(self.value.getText())-100))
+                self.value.setTextColor('black')
+                return
+            elif int(self.value.getText())>=150:
+                return
+        self.value.setTextColor('black')
+        self.locked=False
         self.value.setText('-')
     def getLocked(self):
-        if self.getName()=='yaht-\nzee':
-            return not self.yahtzeeUsable
         return self.locked
 
 #%%
@@ -164,9 +177,16 @@ class Button():
         self.win=win
         self.size=size
         self.drawn=False
+        self.activated=True
         if draw:
             self.draw(win)
             self.drawn=True
+    def activate(self):
+        self.activated=True
+    def deactivate(self):
+        self.activated=False
+    def getActivated(self):
+        return self.activated
     
     def draw(self, win=None):
         if not win:
@@ -245,7 +265,7 @@ class Dye():
         self.drawn=False
     def reset(self):
         self.curVal='?'
-        self.number=Text(self.center, self.curVal)
+        self.number.setText(self.curVal)
     def draw(self, win):
         if self.drawn:
             self.undraw()
@@ -255,7 +275,6 @@ class Dye():
         self.win=win
     def roll(self):
         self.curVal=rand(1,self.sides+1, 1)
-        self.curVal=6
         self.number.setText(str(self.curVal))
         if self.drawn:
             self.draw(self.win)

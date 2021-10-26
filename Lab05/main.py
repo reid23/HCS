@@ -11,6 +11,8 @@ from graphics import *
 
 #* Functions
 def score(cells, win, p=None):
+    #yahtzee logic:
+
     global quitButton #so I don't have to pass quitButton as an arg
     flag=False
     if not p:
@@ -158,11 +160,9 @@ bonusMessage=Text(Point(w/2, h/2), 'Nice! 1s-6s sum to >=63 points.\n+35 bonus p
 quitButton=Button(Point(35, 10), 'Quit', color='red', draw=True, win=win)
 
 
-againButtonFlag=False
+
 #*start game!
 while True:
-    if againButtonFlag:
-        playAgainButton.undraw()
     while getDone(cells)==False:
         skipEndScoringFlag=False
         #rollButton.waitClick()
@@ -271,8 +271,16 @@ while True:
     scoreText.setText(scoreTextVar)
     msgbox.setText('Game over!  Final scores are shown.')
     playAgainButton.draw(win)
-    playAgainButton.waitClick()
+    while True:
+        p=win.getMouse()
+        if quitButton.clicked(p):
+            exit()
+        if playAgainButton.clicked(p):
+            break
     for c in cells:
         c.reset()
     for d in dice:
         d.reset()
+    playAgainButton.undraw()
+    bonusMessage.undraw()
+    msgbox.setText('Click Roll! to begin!')
