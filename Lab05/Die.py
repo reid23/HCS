@@ -1,5 +1,5 @@
 from ReidList import ReidList as r
-from random import randRange as rand
+from random import randrange as rand
 from graphics import *
 
 #! please excuse my creative liberties on the naming here
