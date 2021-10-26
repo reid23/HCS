@@ -1,8 +1,9 @@
 '''
 Author: Reid Dye
 
-A game of Yahtzee.
+This is just main.py, but without the functions: maximum expansion!  Probably more wordy than necesary.
 '''
+
 
 #* Import block
 from ReidList import ReidList as r
@@ -14,9 +15,6 @@ from graphics import *
 
 #* Functions
 def score(cells, win, p=None):
-    #yahtzee logic:
-
-    global quitButton #so I don't have to pass quitButton as an arg
     flag=False
     if not p:
         while True:
@@ -45,28 +43,8 @@ def score(cells, win, p=None):
                     c.notLock()
         return flag
 
-def rollDice(dyeList):
-    output=r(length=len(dice))
-    counter=0
-    for d in dyeList:
-        d.roll()
-        output.set(counter, d.reid())
-        counter+=1
-    return output
 
-def diceOut(dyeList):
-    for d in dyeList:
-        d.setAttr(positionRel=r(0,200))
 
-def diceIn(dyeList):
-    for d in dyeList:
-        d.setAttr(positionAbs=r(d.getPos()(0),150))
-
-def getDone(cells):
-    for c in cells:
-        if c.getVal()=='-':
-            return False
-    return True
 
 
 #* Window setup for start dialogue
@@ -166,7 +144,14 @@ quitButton=Button(Point(35, 10), 'Quit', color='red', draw=True, win=win)
 
 #*start game!
 while True:
-    while getDone(cells)==False:
+    while True:
+        toBreak=True
+        for c in cells:
+            if c.getVal()=='-':
+                toBreak=False
+        if toBreak:
+            break
+
         skipEndScoringFlag=False
         #rollButton.waitClick()
         while True: #substitute for button.waitClick() so that it works with the quit button
@@ -212,7 +197,16 @@ while True:
                 p=win.getMouse()
                 if quitButton.clicked(p):
                     exit()
-                if score(cells, win, p):
+                flag=False
+                for c in cells:
+                    if c.inBounds(p) and c.getName()!='total' and c.getLocked()==False:
+                        c.lockScore()
+                        flag=True
+                if flag:
+                    for c in cells:
+                        if not c.getLocked():
+                            c.notLock()
+                if flag:
                     breakFlag=True
                     break
                 for d in dice:
@@ -230,7 +224,20 @@ while True:
             
         if not skipEndScoringFlag:
             msgbox.setText('Click the cell where you\nwould like to place this score.')
-            score(cells, win)
+            flag=False
+            while True:
+                p=win.getMouse()
+                if quitButton.clicked(p):
+                    exit()
+                for c in cells:
+                    if c.inBounds(p) and c.getName()!='total' and c.getLocked()==False:
+                        c.lockScore()
+                        flag=True
+                if flag:
+                    for c in cells:
+                        if not c.getLocked():
+                            c.notLock()
+                    break
         curScores=0
         for c in cells.getRange(0, 13):
             if c.getVal()=='-' or c.getVal()=='None':
@@ -240,7 +247,8 @@ while True:
         cells(-1).setValue(str(curScores))
 
 
-        diceIn(dice)
+        for d in dice:
+            d.setAttr(positionAbs=r(d.getPos()(0),150))
 
         msgbox.setText('Next round!\nClick roll to begin.')
 

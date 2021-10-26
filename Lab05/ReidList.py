@@ -293,7 +293,7 @@ class reidList():
         return output
     
     def __sub__(self, y):
-        """defines how reidLists are subtracted.  Same as __add__
+        """defines how ReidLists are subtracted.  Same as __add__
 
         Args:
             y (int, float, str, or other reidList with the same shape): the thing to be added.  if it's a single value, it must be the same type as the reidList elements
