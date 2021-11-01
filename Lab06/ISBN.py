@@ -1,26 +1,25 @@
-def fakeInput(prompt, userInput):
-    print(prompt+userInput)
-    return userInput
+class Check():
+    def Valid(self, num):
+        num=list(num)
+        if num[-1].upper()=='X':
+            num[-1]='10'
+        for i in num:
+            if not(i=='0' or i=='1' or i=='2' or i=='3' or i=='4' or i=='5' or i=='6' or i=='7' or i=='8' or i=='9' or i=='0' or i=='10'):
+                return False
+        num=num[::-1] #so index is in same direction as coefficient
+        total=0
+        for i in range(len(num)):
+            total+=int(num[i])*(i+1)
+        if total%11==0:
+            return True
+        return False
 
-def checkValid(num):
-    num=list(num)
-    if num[-1].upper()=='X':
-        num[-1]='10'
-    for i in num:
-        if not(i=='0' or i=='1' or i=='2' or i=='3' or i=='4' or i=='5' or i=='6' or i=='7' or i=='8' or i=='9' or i=='0' or i=='10'):
-            return False
-    num=num[::-1] #so index is in same direction as coefficient
-    total=0
-    for i in range(len(num)):
-        total+=int(num[i])*(i+1)
-    if total%11==0:
-        return True
-    return False
+check=Check()
+
+check.Valid()
 
 file=input('ISBN numbers filename: ')
-#file=fakeInput('ISBN file: ', 'testData')
 outputFile=input('Output filename: ')
-#outputFile=fakeInput('Output file: ', 'outputData.txt')
 outFile=open(outputFile, 'w')
 f=open(file)
 lines=f.read().split('\n')
