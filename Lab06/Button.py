@@ -26,6 +26,9 @@ class Button:
         return (self.active and
             self.xmin <= p.getX() <= self.xmax and
             self.ymin <= p.getY() <= self.ymax)
+    def setLabel(self, label: str):
+        "sets the button's label to label"
+        self.label.setText(label)
     def getLabel(self):
         "Returns the label string of this button."
         return self.label.getText()
@@ -39,3 +42,13 @@ class Button:
         self.label.setFill('darkgrey')
         self.rect.setWidth(1)
         self.active = False
+    def setActive(self, active: bool):
+        if active:
+            self.activate()
+        else:
+            self.deactivate()
+    def getActive(self):
+        return self.active
+    
+    act=property(getActive, setActive)
+    lab=property(getLabel, setLabel)

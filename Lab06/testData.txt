@@ -1,0 +1,54 @@
+;I've implemented comments so I could write stuff here
+;but it's pretty primitive so comments must be on their own line
+
+;hahaha
+;try looking up these isbns
+;it's fun
+;the titles will make a fun little story
+;isbnsearch.org
+
+
+;these should all be valid
+1433335689
+1627794247
+1849542872
+1368019013
+0547737394
+0465031706
+0451471075
+
+;test with X, should still be valid
+042519194X
+
+;bad isbn tests
+;these should return false
+
+;not enough chars, bad chars
+asdf
+
+;fails the checking math
+1274853795
+
+;bad chars, correct len
+asdfasdfaX
+
+;bad char, special bad char test
+0582%38204
+
+;test with new line char
+0482\n3050
+
+;test with comment char
+0402856;38
+
+;test with space
+093285 325
+
+;hahaha
+;try searching these too
+;this is shorter but still fun
+
+0358153948
+1616142162
+1101984139
+1409535770
