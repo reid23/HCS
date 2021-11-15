@@ -24,7 +24,8 @@ class Gui:
         self.objects[animal].setImage(Image(Point(*animal.getPos()), animal.getImgPath().replace('___', rot)))
         self.draw(animal)
         if absolutePos:
-            self.objects[animal].getPos()
+            pos[0] += self.objects[animal].getPos()[0]
+            pos[1] += self.objects[animal].getPos()[1]
         for obj in self.objects[animal].getGraphicsObjects(): obj.move(*pos)
     def drawGrid(self):
         'draws the grid'

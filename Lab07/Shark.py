@@ -9,5 +9,7 @@ class Shark:
         return self.imgPath
     def getPos(self):
         return self.pos
+    def getRot(self):
+        pass
     def setImage(self, image):
         self.img=image.clone()
