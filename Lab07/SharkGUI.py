@@ -19,9 +19,9 @@ class Gui:
                 for obj in entry.getGraphicsObjects(): obj.draw(self.win)
         if drawMsgBox:
             for obj in self.objects[10].getGraphicsObjects(): obj.draw(self.win)
-    def moveAnimal(self, animal, pos, rot, absolutePos=False):
+    def moveAnimal(self, animal, pos, rot=None, absolutePos=False):
         self.undraw(animal)
-        self.objects[animal].setImage(Image(Point(*animal.getPos()), animal.getImgPath().replace('___', rot)))
+        if rot: self.objects[animal].setImage(Image(Point(*animal.getPos()), animal.getImgPath().replace('___', rot)))
         self.draw(animal)
         if absolutePos:
             pos[0] += self.objects[animal].getPos()[0]
@@ -32,18 +32,17 @@ class Gui:
         for i in self.grid: i.draw(self.win)
     def undrawGrid(self):
         'undraws the grid'
-        for i in self.grid: i.undraw(self.win)
-    @property
-    def win(self): return self.win
-    @win.setter
-    def setWin(self, win):
-        """sets win to a window
-        Args:
-            win (GraphWin): the new window
-        """
-        self.win.close()
-        del(self.win)
-        self.win=win
+        for i in self.grid: i.undraw()
+    #these shouldn't be needed
+    # def getWin(self): return self.win #gets win object
+    # def setWin(self, win):
+    #     """sets win to a window
+    #     Args:
+    #         win (GraphWin): the new window
+    #     """
+    #     self.win.close()
+    #     del(self.win)
+    #     self.win=win
     def getThing(self, thing):
         """returns any of the graphics objects
         Args:
@@ -99,4 +98,3 @@ class Gui:
             for button in self.objects[4:7]: 
                 if button.clicked(p): 
                     return 'START' if button==4 else ('QUIT' if button==5 else 'MOVE')
-                    
