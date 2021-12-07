@@ -45,7 +45,7 @@ class Shark:
     def getPos(self):
         "gets the coordinate position of this animal"
         return self.pos
-    def getDirection(self):
+    def getRotation(self):
         "gets the rotation of this animal"
         return '270' #always east because shark doesnt turn
     def setImage(self, image):

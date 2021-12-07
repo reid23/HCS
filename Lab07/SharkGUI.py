@@ -1,31 +1,30 @@
 from graphics import *
 class Gui:
-    SHARK, FISHA, FISHB, FISHC, START, QUIT, MOVE, ENTRYA, ENTRYB, ENTRYC, MSGBOX, CHASINGBOX = list(range(0, 12)) #index constants
+    SHARK, FISHA, FISHB, FISHC, START, QUIT, MOVE, ENTRYA, ENTRYB, ENTRYC, MSGBOX = list(range(0, 11)) #index constants
     NORTH, EAST, SOUTH, WEST = '000', '090', '180', '270'
-    def __init__(self, shark, fisha, fishb, fishc, start, quit, move, entrya, entryb, entryc, msgbox, winTitle='SharkGUI', winSize=[800, 900], drawButtons=True, drawAnimals=True, drawEntries=True, drawMsgBox=True):
-        chasingBox=Rectangle(Point(0.5, 0.5), Point(1.5, 1.5))
-        chasingBox.setWidth(5)
-        chasingBox.setOutline('green')
-        self.objects=[shark, fisha, fishb, fishc, start, quit, move, Entry(Point(3, -0.2), 5), Entry(Point(5, -0.2), 5), Entry(Point(7, -0.2), 5), msgbox, chasingBox]
+    def __init__(self, shark, fisha, fishb, fishc, start, quit, move, entrya, entryb, entryc, msgbox, winTitle='SharkGUI', winSize=[770, 840], drawButtons=True, drawAnimals=True, drawEntries=True, drawMsgBox=True, drawGrid=True):
+        self.objects=[shark, fisha, fishb, fishc, start, quit, move, entrya, entryb, entryc, msgbox]
         self.win=GraphWin(winTitle, winSize[0], winSize[1]) #make window
-        self.win.setCoords(-0.5, -1.5, 9.5, 9.5) #fix it so that grid locations are integers
+        self.win.setCoords(-1, -2, 10, 10) #fix it so that grid locations are integers
         self.grid=[Rectangle(Point(i-0.5, j-0.5), Point(i+0.5, j+0.5)) for i in range(10) for j in range(10)] #create grid
-        for animal in self.objects[0:4]: animal.setImage(Image(Point(*animal.getPos()), animal.getImgPath().replace('___', (animal.getDirection()[0:2] + ('X' if animal.getFleeMode() else '0')))))
+        for animal in self.objects[0:4]: animal.setImage(Image(animal.getPos(), animal.getImgPath().replace('___', '000')))
         if drawButtons:
             for button in self.objects[4:7]:
-                for obj in button.getGraphicsObjects(): obj.draw(self.win) #draw all the buttons
+                for obj in button.getGraphicsObjects():
+                    obj.draw(self.win) #draw all the buttons
+                    print("draw")
         if drawAnimals:
             for animal in self.objects[0:4]:
                 for obj in animal.getGraphicsObjects(): obj.draw(self.win) #draw all the animals
         if drawEntries:
-            for entry in self.objects[7:]: entry.draw(self.win)
-        if drawMsgBox:
-            for obj in self.objects[10].getGraphicsObjects(): obj.draw(self.win)
-    def _getImgNumber(self, animal):
-        return animal.getDirection()[0:2] + ('X' if animal.getFleeMode() else '0')
-    def moveAnimal(self, animal, pos, rot, flee=False, absolutePos=False):
+            for entry in self.objects[7:10]: entry.draw(self.win)
+        if drawMsgBox: self.objects[10].draw(self.win)
+        if drawGrid:
+            for rect in self.grid:
+                rect.draw(self.win)
+        
+    def moveAnimal(self, animal, pos, rot, absolutePos=False):
         self.undraw(animal)
-        if flee: rot=rot[:2].append('X')
         self.objects[animal].setImage(Image(Point(*animal.getPos()), animal.getImgPath().replace('___', rot)))
         self.draw(animal)
         if absolutePos:
@@ -38,17 +37,33 @@ class Gui:
     def undrawGrid(self):
         'undraws the grid'
         for i in self.grid: i.undraw()
-    def getChasingBoxPos(self): return self.objects[11].getCenter().getX(), self.objects[11].getCenter().getY()
-    def moveChasingBox(self, pos, absolutePos=True):
-        if absolutePos: pos=[pos[0]-self.getChasingBoxPos()[0], pos[1]-self.getChasingBoxPos()[1]]
-        self.objects[11].move(pos[0], pos[1])
+
+    def getWin(self): return self.win
+
+    def setWin(self, win):
+        """sets win to a window
+        Args:
+            win (GraphWin): the new window
+        """
+        self.win.close()
+        del(self.win)
+        self.win=win
     def getThing(self, thing):
-        """returns any of the graphics objects, given one of the gui class constants"""
+        """returns any of the graphics objects
+        Args:
+            thing (gui constant): the thing to get, in the form Gui.FISHC
+        Returns:
+            animal, button, etc: the object
+        """
         return self.objects[thing]
     def setThing(self, thing, newObject):
-        """sets the [thing] to [newObject], given [thing] as gui class constant"""
+        """sets the [thing] to [newObject]
+        Args:
+            thing (Gui constant): the thing to set. In the form Gui.FISHC
+            newObject (button, animal, etc. object): the thing to set Gui.[whatever] to.
+        """
         self.objects[thing]=newObject
-    def thingMethod(self, thing, func, eva=True, exe=True, *args, **kwargs): #so we don't have to import graphics anywhere else
+    def thingMethod(self, thing, func, eva=True, exe=True, *args, **kwargs):
         try:
             if exe:
                 exec(f'self.objects[{thing}].{func}(*{args}, **{kwargs})')
@@ -58,19 +73,19 @@ class Gui:
             print('Error occurred!', e)
             return e
     def draw(self, thing): 
-        """draws any of the graphics objects, given [thing] as a gui class constant"""
-        if thing==11: self.objects[thing].draw(self.win)
-        elif thing==10: self.objects[thing].draw(self.win)
-        else:
-            for obj in self.objects[thing].getGraphicsObjects(): obj.draw(self.win)
+        """draws any of the graphics objects
+        Args:
+            thing (Gui constant): the thing to draw. In the form Gui.FISHC
+        """
+        for obj in self.objects[thing].getGraphicsObjects(): obj.draw(self.win)
     def undraw(self, thing): 
-        """undraws any of the graphics objects, given [thing] as a gui class constant"""
-        if thing==11: self.objects[thing].undraw()
-        elif thing==10: self.objects[thing].undraw()
-        else:
-            for obj in self.objects[thing].getGraphicsObjects(): obj.undraw()
+        """undraws any of the graphics objects
+        Args:
+            thing (Gui constant): the thing to undraw. In the form Gui.FISHC
+        """
+        self.objects[thing].undraw()
     def getMouse(self): 
-        """just win.getMouse without having to use win"""
+        'just win.getMouse without having to use win'
         return self.win.getMouse()
     def waitButtonClick(self, button=None):
         """waits for a button click
