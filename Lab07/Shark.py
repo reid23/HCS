@@ -26,8 +26,7 @@ class Shark:
             [-2, 2], 
             [0, 2]
         ]
-    def _dist(a, b):
-        return list(np.linalg.norm(np.array(a)-np.array(b)))
+    def _dist(a, b): return list(np.linalg.norm(np.array(a)-np.array(b)))
     def _mindex(a):
         curmin=Inf
         output=[]
@@ -38,23 +37,37 @@ class Shark:
                 output=[counter]
         return output
     def getGraphicsObjects(self):
-        return self.img
+        "returns a list of all graphics objects in this class"
+        return [self.img]
     def getImgPath(self):
+        "returns the path of the image representing this animal"
         return self.imgPath
     def getPos(self):
+        "gets the coordinate position of this animal"
         return self.pos
+    def getDirection(self):
+        "gets the rotation of this animal"
+        return '270' #always east because shark doesnt turn
     def setImage(self, image):
+        "sets the image variable to an actual image object"
         self.img=image.clone()
-    def kill(self):
-        pass
     def setFleeMode(self, fleeMode):
+        "sets the flee mode.  For compatability"
         pass
+    def getFleeMode(self):
+        "gets the flee mode. For compatability"
+        return False
     def setChasing(self, *fishPoses):
+        "sets self.chasing given all of the fish positions"
+        xs, ys = zip(*fishPoses)
+        if min(xs)>2 or min(ys)>2: 
+            self.chasing=None
+            return
         dists = [self._dist(self.pos, i) for i in fishPoses]
         if self.chasing-1 in self._mindex(dists): return
         self.chasing=self._mindex(dists)[randint(1, len(self._mindex(dists)))]+1
-
     def getChasing(self):
+        "returns which fish this shark is chasing, either 1, 2, 3, or None"
         return self.chasing
     def turn(self, *fishPoses):
         self.setChasing(*fishPoses)

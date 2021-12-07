@@ -6,9 +6,10 @@ class Button:
     and deactivate () methods . The clicked (p) method
     returns true if the button is active and p is inside it .
     """
-    def __init__(self, center, width, height, label):
+    def __init__(self , xpos, ypos , width , height , label):
         """ Creates a rectangular button , eg:
-        qb = Button (myWin , centerPoint , width , height , 'Quit')"""
+        qb = Button (centerPoint , width , height , 'Quit')"""
+        center=Point(xpos, ypos)
         w,h = width/2.0, height/2.0
         x,y = center.getX(), center.getY()
         self.xmax, self.xmin = x+w, x-w
@@ -17,15 +18,8 @@ class Button:
         p2 = Point(self.xmax, self.ymax)
         self.rect = Rectangle(p1,p2)
         self.rect.setFill('lightgray')
-        #self.rect.draw(win)
         self.label = Text(center, label)
-        #self.label.draw(win)
         self.deactivate()
-    def getGraphicsObjects(self):
-        return [self.rect, self.label]
-    def undraw(self):
-        self.rect.undraw()
-        self.label.undraw()
     def clicked(self, p):
         "Returns true if button active and p is inside"
         return (self.active and
@@ -54,6 +48,8 @@ class Button:
             self.deactivate()
     def getActive(self):
         return self.active
+    def getGraphicsObjects(self):
+        return [self.label, self.rect]
     
     act=property(getActive, setActive)
     lab=property(getLabel, setLabel)

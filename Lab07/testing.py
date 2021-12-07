@@ -1,31 +1,31 @@
-#%%
-import cv2
-import numpy as np
-import matplotlib.pyplot as plt
-%matplotlib inline
-# %%
-img=cv2.imread('Shark.png')
+from SharkGUI import Gui
+from Shark import Shark
+from Fish import Fish
+from Button import Button
+import os
 
-img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-print(img.shape)
-for counter, i in enumerate(img):
-    for counter2, j in enumerate(i):
-        if not ((np.array_equal(img[counter][counter2], np.array([255,255,255]))) or (np.array_equal(img[counter][counter2], np.array([0,0,0])))):
-            #print(img[counter][counter2])
-            img[counter][counter2][0]=250
-            #img[counter][counter2][1]-=50
-            img[counter][counter2][2]-=150
-        
-            #print(img[counter][counter2])
-            #print()
-        
-plt.imshow(img)
-plt.show()
-# %%
+print(os.listdir())
 
-from SharkGUI import *
-g=Gui(None, None, None, None, None, None, None, None, None, None, None)
+s=Shark()
+a=Fish(5,5)
+b=Fish(6,6)
+c=Fish(7,8)
 
-# %%
+start=Button(3, -1, 0.2, 0.5, 'start')
+move=Button(5, -1, 0.2, 0.5, 'move')
+quit=Button(7, -1, 0.2, 0.5, 'quit')
+msgbox=Button(8, -1, 0.2, 1, '[empty message]')
 
-np.save('all_possible_fish_start_positions.npy', a)
+g=Gui(s, a, b, c, start, quit, move, None, None, None, msgbox, drawButtons=True, drawEntries=True, drawMsgBox=True)
+g.drawGrid()
+g.getMouse()
+
+g.moveChasingBox([5,5])
+g.draw(Gui.CHASINGBOX)
+g.getMouse()
+
+g.moveAnimal(Gui.SHARK, [-2, -2])
+g.getMouse()
+
+g.undraw(Gui.FISHA)
+g.getMouse()
