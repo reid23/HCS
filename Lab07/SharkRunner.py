@@ -111,3 +111,4 @@ def main():
         #when the continueGame loop is broken, the fish positions and values are reset
         for index, fish in enumerate(fishList):
             fish.reset()
+main()
