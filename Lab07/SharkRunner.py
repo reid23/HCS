@@ -95,7 +95,7 @@ def main():
             #stalemate counter increments with each move turn and resets when a fish is eaten
             tracker.addState([fish.getPos() for fish in fishList], [fish.getDirection() for fish in fishList], shark.getPos()) #records current positions
             stalemate += 1
-            if stalemate >= 40: #game ends at 40 moves without eating a fish
+            if stalemate >= 75: #game ends at 75 moves without eating a fish
                 gui.thingMethod(Gui.MSGBOX, 'setText', True, False, 'The shark starved. Enter new fish coordinates and click Start to try again.')
                 continueGame = False
                 print('stalemate through no fish in 40 moves')
