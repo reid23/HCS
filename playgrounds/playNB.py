@@ -39,6 +39,8 @@ def bc(a, b, func):
     s_a = _shape(a)
     s_b = _shape(b)
 
+    #*nonexistant dimensions are len 1 yay yay yay
+
     if len(s_a)
 
 
