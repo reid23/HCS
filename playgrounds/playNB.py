@@ -28,3 +28,31 @@ with open('data.data', 'r') as file:
     for line in file:
         print(line, end = '')
 # %%
+def add(a, b):
+    return a+b
+
+def mult(a, b):
+    return a*b
+
+
+def bc(a, b, func):
+    s_a = _shape(a)
+    s_b = _shape(b)
+
+    if len(s_a)
+
+
+def _shape(a):
+    shape = []
+    while True:
+        try:
+            shape.append(len(a))
+        except TypeError:
+            break
+        a=a[0]
+    return tuple(shape)
+
+
+
+#%%
+
