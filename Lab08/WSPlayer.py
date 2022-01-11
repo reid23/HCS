@@ -10,6 +10,7 @@ class Player:
         self.homeRuns=homeRuns
         self.singles=hits-(doubles+triples+homeRuns)
         self.fails = hits/battingAverage #total number of misses
+        self.homers = 0
 
     def __repr__(self):
         return f"Player('{self.lastName}', '{self.firstName}', {self.battingAverage}, {self.hits}, {self.doubles}, {self.triples}, {self.homeRuns})"
@@ -25,6 +26,13 @@ class Player:
         elif self.fails+self.singles+self.doubles<val<=self.fails+self.singles+self.doubles+self.triples:
             return 3
         else:
+            self.homers+=1
             return 4
+    
+    def getHomers(self):
+        return self.homers
+    def resetHomers(self):
+        self.homers=0
+    
     def getName(self):
         return f'{self.firstName[:1]}. {self.lastName}'
