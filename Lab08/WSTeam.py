@@ -18,6 +18,7 @@ class Team:
     def reset(self):
         for i in self.players:
             i.resetHomers()
+        
     def getHomers(self):
         output={}
         for i in self.players:
@@ -37,3 +38,5 @@ class Team:
         self.score+=points
     def getScore(self):
         return self.score
+    def resetScore(self):
+        self.score=0

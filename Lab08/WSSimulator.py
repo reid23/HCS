@@ -2,24 +2,17 @@ from WSPlayer import Player
 from WSGamestate import Inning
 from WSTeam import Team
 
-a = []
-b = []
-
-with open('_astros.data', 'r') as f:
-    for i in eval(f.read()):
-        a.append(Player(*i))
-with open('_braves.data', 'r') as f:
-    for i in eval(f.read()):
-        b.append(Player(*i))
-
-astros = Team(a)
-braves = Team(b)
-
+with (open('_astros.data', 'r') as astros,
+      open('_braves.data', 'r') as braves):
+      astros = Team([Player(*i) for i in eval(astros.read())])
+      braves = Team([Player(*i) for i in eval(braves.read())])
 
 def simGame():
     innings=0
     summaries = []
     scores = []
+    astros.resetScore()
+    braves.resetScore()
     while innings<9 or astros.getScore()==braves.getScore():
         inning = Inning(innings+1, "Astros")
         for player in astros:
@@ -81,48 +74,80 @@ def simOneWS():
     return singleWSSum, playByPlay, multiSeriesStr
     
 
-# print()
-number = input(
-'''Welcome to the World Series Simulator!
+def main():
+    number = input('''Welcome to the World Series Simulator!
 
 This program will simulate a World Series matchup between the
 Houston Astros and the Atlanta Braves.
 
-Enter the number of World Series you'd like to simulate: '''
-)
-while True:
-    try:
-        number=int(number)
-        break
-    except ValueError:
-        number = input(f'{number} is an invalid input. Try again: ')
+Enter the number of World Series you'd like to simulate: ''')
+    while True:
+        try:
+            number=int(number)
+            break
+        except ValueError:
+            number = input(f'{number} is an invalid input. Try again: ')
 
-if number==1:
-    results = simOneWS()
-    print(results[0])
-    with open('WSPlayByPlay.log', 'w') as f:
-        print(results[1], file=f)
-else:
-    results = {
-        'A4':0,
-        'A5':0,
-        'A6':0,
-        'A7':0,
-        'B4':0,
-        'B5':0,
-        'B6':0,
-        'B7':0,
-    }
-    with open('WSmultiseries.log', 'w') as f:
-        print('Astros-Braves World Series Simulation\n', file=f)
-        for i in range(number):
-            WSData = simOneWS()[2]
-            results[f'{WSData[0]}{WSData[-1]}']+=1
-            print(f'{i+1}: {WSData}', file=f)
-    print(f'Results of {number} World Series Simulations\n')
-    wins = tuple(results.values())
-    sumWins = sum(wins)
-    p = [round(i/sum(results.values())*100, 1) for i in results.values()]
+    if number==1:
+        results = simOneWS()
+        print(results[0])
+        with open('WSPlayByPlay.log', 'w') as f:
+            print(results[1], file=f)
+    else:
+        results = {
+            'A4':0,
+            'A5':0,
+            'A6':0,
+            'A7':0,
+            'B4':0,
+            'B5':0,
+            'B6':0,
+            'B7':0,
+        }
+        with open('WSmultiseries.log', 'w') as f:
+            print('Astros-Braves World Series Simulation\n', file=f)
+            for i in range(number):
+                WSData = simOneWS()[2]
+                results[f'{WSData[0]}{WSData[-1]}']+=1
+                print(f'{i+1}: {WSData}', file=f)
+        print(f'Results of {number} World Series Simulations\n')
+        wins = tuple(results.values())
+        sumWins = sum(wins)
+        p = [round(i/sum(results.values())*100, 1) for i in results.values()]
 
-    for i in range(4): print(f'Astros win in {i+4}: {p[i]}%')
-    for i in range(4): print(f'Braves win in {i+4}: {p[i+4]}%')
+        for i in range(4): print(f'Astros win in {i+4}: {p[i]}%')
+        for i in range(4): print(f'Braves win in {i+4}: {p[i+4]}%')
+
+        #print graph
+        p=p[0:4]+p[8:3:-1]
+        graph = [f'{round(max(p))}%|'.rjust(5), '    |', '    |', '    |', f'{round(max(p)/2)}%|'.rjust(5), '    |', '    |', '    |', '  0%|', '    |---------------------------------------', '      b4   b5   b6   b7   a7   a6   a5   a4']
+        for i in p:
+            index = len(graph)-(round(8*(i/max(p)))+2)
+            for j in range(len(graph)):
+                if j==index: 
+                    graph[j] += ' **  '
+                elif j<9:
+                    graph[j] += '     '
+        for i in graph:
+            print(i)
+
+    
+if __name__=='__main__': main()
+
+#%%
+# a='''
+#  24%|
+#     |
+#     |
+#     |
+#  12%|
+#     |
+#     |
+#     |
+#   0%|
+#     |---------------------------------------
+#       b4   b5   b6   b7   a7   a6   a5   a4
+# '''
+# b=a.split('\n')[1:-1]
+# print(repr(b))
+# %%
