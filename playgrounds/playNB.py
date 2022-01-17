@@ -129,7 +129,6 @@ def zeroes(shape):
         output=[output for i in range(i)]
     return output
 
-<<<<<<< HEAD
 def bc(A, B, func):
     a=A.copy()
     b=B.copy()
@@ -181,8 +180,6 @@ def zeroes(shape):
         output=[output for i in range(i)]
     return output
 
-=======
->>>>>>> 2111b4c... merged pop stuff
 
 
 # %%

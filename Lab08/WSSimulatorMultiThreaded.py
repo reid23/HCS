@@ -226,7 +226,6 @@ def printGraph(p:list):
     #reorder the second half so it looks like a bell curve in the graph
     #because the odds should go a6, a7, b7, b6, etc to make sense
     p=p[0:4]+p[8:3:-1]
-
     #create graph basics
     maximum=max(p)
     graph = [
@@ -480,7 +479,8 @@ Enter the number of World Series you'd like to simulate: ''')
         p = [round(i/sumWins*100, 1) for i in results] #create list of probabilities of each case happening
 
         #print the probabilities
-        for i in range(8): shellOutput+='\nAstros win in {num}: {prob}%'.format(num=i+4 if i<4 else i, prob=p[i])
+        for i in range(4): shellOutput+='\nAstros win in {num}: {prob}%'.format(num=i+4, prob=p[i])
+        for i in range(4): shellOutput+='\nBraves win in {num}: {prob}%'.format(num=i+4, prob=p[i+4])
 
         ### print an ascii graph
         #title

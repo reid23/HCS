@@ -25,14 +25,10 @@
 #* based on the classes though, not just making all of the classes and working on all of them 
 #* concurrently, which helped speed up the process a lot.
 
+#! this is not the optimized version, but it still runs at around 1s per 1000 simulations.  It *is* 
+#! properly commented though.
 
-import time
 from WSPlayer import Player
-from multiprocessing import Process
-from numba import jit, cuda
-#* Team and Inning classes below. Classes end on line 208. 
-#C-u 176 C-n
-#* Then there's functions.  Main() is on 
 
 #%%
 class Team:
@@ -131,7 +127,7 @@ class Inning:
     The play by play summary is stored in log, and can be accessed with its getter.
     """
     words=['struck out', 'singled', 'doubled', 'tripled', 'homered']
-    def __init__(self, number:int, team:str, single:bool):
+    def __init__(self, number:int, team:str):
         """constructor for Inning class
 
         Args:
@@ -139,13 +135,10 @@ class Inning:
             team (str): the name of the team playing
         """
         self.runs = 0
-        self.single=single
-        if single: self.log = '\nInning {num} - {tm}'.format(num=number, tm=team) #log the start
+        self.log = f'\nInning {number} - {team}' #log the start
         self.outs = 0
         self.bases = [0,0,0] #our shift register is 3 bits long, for 3 bases (serial out represents home base)
-
-    #@profile
-    def _shiftBit(self, bit):
+    def _shiftBit(self, bit, register:list):
         """shift $bit into $register.  Modifies $register in place and returns the serial out bit. 
         Calling this function is analagous to setting SD_i, sending one clock pulse, then latching.
 
@@ -157,9 +150,9 @@ class Inning:
             int: the serial out bit. type depends on what was shifted in.
         """
 
-        self.bases.insert(0, bit) #put new bit at beginning
+        register.insert(0, bit) #put new bit at beginning
 
-        return self.bases.pop() #remove last element and return it (this is s_o)
+        return register.pop() #remove last element and return it (this is s_o)
     #@profile
     def addPlay(self, play, player): #1000x = 5.2261e-3 sec
         """adds a play to the inning, and deals with whatever that causes for the bases and scoring.  
@@ -172,12 +165,12 @@ class Inning:
         Returns:
             bool: whether the inning should/can continue (ie false if this play was the third out of the inning)
         """
-        if self.single: self.log+="\n{person} {result}".format(person=player, result=self.words[play]) #add to playByPlay
+        self.log+=f"\n{player} {['struck out', 'singled', 'doubled', 'tripled', 'homered'][play]}" #add to playByPlay
         
         # increment self.outs if the batter struck out, and return the appropriate 
         # value (to not continue the function, because we shouldn't shift anything
         # if the player struck out)
-        if not play:
+        if play==0:
             self.outs+=1
             return self.outs<3
 
@@ -192,13 +185,21 @@ class Inning:
         # represents a player reaching home base (leaving the register).
         # This information is then written to self.log.  
 
+        # actually shift the bit
+        # shifts 1 for the first base, then shifts enough zeroes to move 
+        # everyone the appropriate amount.  For example, for a triple, 
+        # this shifts in [1, 0, 0], so that there's now a player on third,
+        # and everyone else has been pushed three bases.
+
+        # if the serial out bit is 1 for any given shift, the score 
+        # (self.runs) is incremented, because a 1 in serial out 
+        # represents a player reaching home base (leaving the register).
+        # This information is then written to self.log.  
+
         for i in range(play):
-            a=self._shiftBit(player if not i else 0)
-            
-            if not not a: #not not is fast bool()
-                self.runs+=1
-                if self.single:
-                    self.log += ' ({person} scored)'.format(person=a)
+            a=self._shiftBit(player if i==0 else 0, self.bases)
+            if a!=0: self.log += f' ({a} scored)'
+            self.runs+=1 if bool(a) else 0 #TODO: ask is this okay "$player homered ($player scored) ($player1 scored)"
 
         # then also return true because we know there wasn't a new out
         return True
@@ -214,11 +215,9 @@ class Inning:
         """get the current number of runs.  
 
         Returns:
-            int: the current number of runs in this inning
+            int: the number of runs
         """
         return self.runs
-
-#%%
 
 ###! END OF CLASSES
 
@@ -236,20 +235,18 @@ def printGraph(p:list):
         p (list): list of length 8, with all of the probabilities
     """
     #make sure its the right length
-    #assert len(p) == 8, f'input list length is incompatable, expected len(p)==8 but received {len(p)}'
+    assert len(p) == 8, f'input list length is incompatable, expected len(p)==8 but received {len(p)}'
 
     #reorder the second half so it looks like a bell curve in the graph
     #because the odds should go a6, a7, b7, b6, etc to make sense
     p=p[0:4]+p[8:3:-1]
 
-    #create graph basics
-    maximum=max(p)
     graph = [
-           '{maxVal}%|'.format(maxVal=round(maximum)).rjust(5), #max probability
+           f'{round(max(p))}%|'.rjust(5), #max probability
             '    |',
             '    |', 
             '    |', 
-           '{midVal}%|'.format(midVal=round(maximum/2)).rjust(5), #middle probability
+           f'{round(max(p)/2)}%|'.rjust(5), #middle probability
             '    |',
             '    |', 
             '    |', 
@@ -262,22 +259,19 @@ def printGraph(p:list):
     #       if the row represents the right probability, put the datapoint.  
     #       else put the equivalent number of spaces.
     for i in p:
-        index = 11-(round(8*(i/maximum))+2) #11 is len(graph)
+        index = 11-(round(8*(i/max(p)))+2) #11 is len(graph)
         for j in range(9): #9 because there's 8 rows in the graph
             graph[j]+=' **  ' if j==index else '     '
-            #the line above does the following faster:
+            #the line above does the following better:
             # if j==index: 
             #     graph[j] += ' **  '
-            # elif j<9:
+            # else:
             #     graph[j] += '     '
 
-    #then return a printable version
-    return '\n'.join(graph)
+    #then print the actual thing (go through and print each element of the list)
+    for i in graph: print(i)
 
-#%%
-
-#@profile
-def simGame(single):
+def simGame():
     """simulates one game.
 
     Returns:
@@ -286,7 +280,9 @@ def simGame(single):
         the form [[astros_0, braves_0], [astros_1, braves_1], ... , [astros_n, braves_n]]
     """
     #init vars
-    innings, summaries, scores = 0, [], []
+    innings=0
+    summaries = []
+    scores = []
     #reset team scores from any previous games
     astros.resetScore()
     braves.resetScore()
@@ -305,7 +301,7 @@ def simGame(single):
 
     #    increment innings counter
     while innings<9 or astros.getScore()==braves.getScore():
-        inning = Inning(innings+1, "Astros", single)
+        inning = Inning(innings+1, "Astros")
         for player in astros:
             # inning.addPlay takes the number of bases ran, which we get using player.simHit, 
             # and the player's name, which we get pre-formatted with player.getName.
@@ -323,115 +319,95 @@ def simGame(single):
             if not inning.addPlay(player.simHit(), player.getName()):
                 break
         
-        if single:
-            summaries.append(inning.getSummary())
+        summaries.append(inning.getSummary())
         astros.addScore(inning.getRuns())
 
         #this is the same as the astros inning
-        inning = Inning(innings+1, "Braves", single)
+        inning = Inning(innings+1, "Braves")
         for player in braves:
             if not inning.addPlay(player.simHit(), player.getName()): 
                 break
 
-        if single: #same time savings
-            summaries.append(inning.getSummary())
+        summaries.append(inning.getSummary())
         braves.addScore(inning.getRuns())
 
 
-        if single: scores.append((astros.getScore(), braves.getScore()))
+        scores.append([astros.getScore(), braves.getScore()])
 
         innings+=1
-    if not single: scores=((astros.getScore(), braves.getScore()),) #extra axis for compatability, this if also saves about the same amount of time
     return summaries, scores
 
-#%%
-
-def simOneWS(single=False):
+def simOneWS():
     """simulate one world series.
 
     Returns:
         tuple: the results of the world series, in the form (summaryForSingleWSShellOutputPreFormatted:str, playByPlayLogPreFormatted:str, multiSeriesRecapLineFormattedForFileOutput:str)
     """
-    playByPlay, summary, singleWSSum , wsScore = '','','',[0,0]
+    playByPlay, summary, singleWSSum = '', '', ''
+    wsScore = [0, 0]
     astros.reset()
     braves.reset()
-    for i in range(10): #just use big number
-        summaries, scores = simGame(single) #actually simulate the game
+    for i in range(100): #just use big number
+        summaries, scores = simGame() #actually simulate the game
+
+        # header for playbyplay log
+        # this is the only reason i'm using a for loop instead of a while
+        playByPlay += f'========== Game {i+1} ==========\n'
+        
+        for summ, score in zip(summaries, scores): #for each inning's data:
+            playByPlay += f'{summ}\nScore: Astros: {score[0]}, Braves: {score[1]}\n' #add ths game's summary and scores to playByPlay
         
         if scores[-1][0]>scores[-1][1]:
-            wsScore[0]+=1
-        else:
-            wsScore[1]+=1
-
-        if single: #save time if these logs are not needed
-            # header for playbyplay log
-            # this is the only reason i'm using a for loop instead of a while
-            playByPlay += f'========== Game {i+1} ==========\n'
-            
-            for summ, score in zip(summaries, scores): #for each inning's data:
-                playByPlay += f'{summ}\nScore: Astros: {score[0]}, Braves: {score[1]}\n' #add ths game's summary and scores to playByPlay
-            
-            #add the summary of this game, with the ordering right based on who's winning
-            summary += f"Game {i+1}: {f'Braves: {scores[-1][1]}, Astros: {scores[-1][0]}' if scores[-1][0]<scores[-1][1] else f'Astros: {scores[-1][0]}, Braves: {scores[-1][1]}'}\n"
+            wsScore[0]+=1 #increment astros WS score
+        if scores[-1][0]<scores[-1][1]:
+            wsScore[1]+=1 #increment braves WS score
         
+        #add the summary of this game, with the ordering right based on who's winning
+        summary += f"Game {i+1}: {f'Braves: {scores[-1][1]}, Astros: {scores[-1][0]}' if scores[-1][0]<scores[-1][1] else f'Astros: {scores[-1][0]}, Braves: {scores[-1][1]}'}\n"
 
         if 4 in wsScore: #check if anyone's won the WS
             ### all the stuff for singleWSSum:
             astrosHomers, bravesHomers = '', '' #init vars
 
-            for i in astros.getHomers(): astrosHomers+=" {name} {homes},".format(name=i[0], homes=i[1]) #format the sorted list into a presentable string
-            for i in braves.getHomers(): bravesHomers+=" {name} {homes},".format(name=i[0], homes=i[1]) # ^
+            for i in astros.getHomers(): astrosHomers+=f" {i[0]} {i[1]}," #format the sorted list into a presentable string
+            for i in braves.getHomers(): bravesHomers+=f" {i[0]} {i[1]}," #^
             
             #\n's expanded for readability, at the expense of the aesthetics
             #seriously this looks super weird with the string not indented
-            if single: 
-                singleWSSum=(
-"""Results of World Series simulation:
+            singleWSSum=(
+f"""Results of World Series simulation:
 
-{summ}
+{summary}
 
-{team} win the series {score1}-{score2}
+{'Braves' if wsScore[1]>wsScore[0] else 'Astros'} win the series {max(wsScore)}-{min(wsScore)}
 
 
 Home runs:
-Astros:{aHomers}
-Braves:{bHomers}
-""".format(summ=summary, team='Braves' if wsScore[1]>wsScore[0] else 'Astros', score1=max(wsScore), score2=min(wsScore), aHomers=astrosHomers[:-1], bHomers=[bravesHomers[:-1]])) #as long as we don't put a comma it doesn't register as a tuple, and parens let the first line not be weirdly indented here
-                break
+Astros:{astrosHomers[:-1]}
+Braves:{bravesHomers[:-1]}
+""") #as long as we don't put a comma it doesn't register as a tuple, and parens let the first line not be weirdly indented here
+
 
             ### all the stuff for multiSeriesStr (the thing to output to the file)
-            multiSeriesStr = '{first} win in {num}'.format(first="Braves" if wsScore[1]>wsScore[0] else "Astros", num=sum(wsScore))
-            # then break out of the 10x for loop because the ws is over and we shouldn't sim more games
+            multiSeriesStr = f'{"Braves" if wsScore[1]>wsScore[0] else "Astros"} win in {sum(wsScore)}'
+
+            # then break out of the 100x for loop because the ws is over and we shouldn't sim more games
             break
 
     #return stuff!
-    if single:
-        return singleWSSum, playByPlay
-    return multiSeriesStr
+    return singleWSSum, playByPlay, multiSeriesStr
     
 
 #%%
 
 def main():
     'main function!'
-    results = {
-        'A4':0,
-        'A5':0,
-        'A6':0,
-        'A7':0,
-        'B4':0,
-        'B5':0,
-        'B6':0,
-        'B7':0,
-    }
     number = input('''Welcome to the World Series Simulator!
 
 This program will simulate a World Series matchup between the
 Houston Astros and the Atlanta Braves.
 
 Enter the number of World Series you'd like to simulate: ''')
-    #init vars
-    multiLog = ''
     #wait for valid input
     while True:
         try:
@@ -440,53 +416,56 @@ Enter the number of World Series you'd like to simulate: ''')
             break
         except ValueError:
             number = input(f'{number} is an invalid input. Try again: ')
-    startTime=time.time()
     #if we only need to do one ws, do this.  Just does one and prints the stuff and writes to the file.
     if number==1:
-        results = simOneWS(True) #simulate
+        results = simOneWS() #simulate
         print(results[0])    #print preformatted shell output
         with open('WSPlayByPlay.log', 'w') as f:
             f.write(results[1]) #log preformatted play by play
             #by writing all the stuff at the end, we save a lot of computation time.  
             #writing to files is much slower that saving to a string in ram
     else:
-        #simulate all the WS's
-        for i in range(number):
-            WSData = simOneWS(False) #do the simulation
-            results['{data_0}{data_1}'.format(data_0=WSData[0], data_1=WSData[-1])]+=1 #increment the correct area in the results dict corrosponding to the result of the simulation
-            
-            multiLog+='{a}: {data}\n'.format(a=i+1, data=WSData) #write the line to the file, with the ws number and the outcome.
+        results = { #init var
+            'A4':0,
+            'A5':0,
+            'A6':0,
+            'A7':0,
+            'B4':0,
+            'B5':0,
+            'B6':0,
+            'B7':0,
+        }
 
-        #output stuff to file
+        #output stuff to fiel
         with open('WSmultiseries.log', 'w') as f:
             #header
-            f.write('Astros-Braves World Series Simulation\n\n{mL}'.format(mL=multiLog))
+            f.write('Astros-Braves World Series Simulation\n')
 
+            #simulate all the WS's
+            for i in range(number):
+                WSData = simOneWS()[2] #do the simulation
+                results[f'{WSData[0]}{WSData[-1]}']+=1 #increment the correct area in the results dict corrosponding to the result of the simulation
+                f.write(f'{i+1}: {WSData}\n') #write the line to the file, with the ws number and the outcome.
         
         ### shell output
         #header
-        shellOutput='\nResults of {num} World Series Simulations\n'.format(num=number)
+        print(f'Results of {number} World Series Simulations\n')
         
         #get the probabilities by dividing each outcome's frequency by the total number of outcomes
         wins = tuple(results.values())
         sumWins = sum(wins)
-        p = [round(i/sumWins*100, 1) for i in wins] #create list of probabilities of each case happening
+        p = [round(i/sum(results.values())*100, 1) for i in results.values()] #create list of probabilities of each case happening
 
         #print the probabilities
-        for i in range(4): shellOutput+='\nAstros win in {num}: {prob}%'.format(num=i+4, prob=p[i])
-        for i in range(4): shellOutput+='\nBraves win in {num}: {prob}%'.format(num=i+4, prob=p[i+4])
+        for i in range(4): print(f'Astros win in {i+4}: {p[i]}%')
+        for i in range(4): print(f'Braves win in {i+4}: {p[i+4]}%')
 
         ### print an ascii graph
         #title
-        shellOutput+='\n     '+'percentage of games in each scenario:'.center(40)+'\n\n'
+        print('     '+'percentage of games in each scenario:'.center(40)+'\n')
+        #actual graph
+        printGraph(p)
 
-        #graph and all other shell output
-        print(shellOutput+printGraph(p))
-
-
-    endTime=time.time()
-
-    print(f'\nTime taken for {number} simulations: {endTime-startTime}s')
 
     
 if __name__=='__main__': main()
