@@ -182,22 +182,19 @@ def simGame():
     return summaries, scores
 
 def simOneWS():
-    playByPlay = ''
-    summary = ''
-    singleWSSum=''
+    playByPlay, summary, singleWSSum = '', '', ''
     wsScore = [0, 0]
     astros.reset()
     braves.reset()
-    for i in range(7):
+    for i in range(100): #just use big number
         summaries, scores = simGame()
         playByPlay += f'========== Game {i+1} ==========\n'
         for summ, score in zip(summaries, scores): #for each inning's data:
-            playByPlay += summ + '\n'
-            playByPlay += f'Score: Astros: {score[0]}, Braves: {score[1]}\n'
+            playByPlay += f'{summ}\nScore: Astros: {score[0]}, Braves: {score[1]}\n' #add summary and scores to playByPlay
         if scores[-1][0]>scores[-1][1]:
-            wsScore[0]+=1
+            wsScore[0]+=1 #increment astros score
         if scores[-1][0]<scores[-1][1]:
-            wsScore[1]+=1
+            wsScore[1]+=1 #increment braves score
         
         summary += f"Game {i+1}: {f'Braves: {scores[-1][1]}, Astros: {scores[-1][0]}' if scores[-1][0]<scores[-1][1] else f'Astros: {scores[-1][0]}, Braves: {scores[-1][1]}'}\n"
         if 4 in wsScore:

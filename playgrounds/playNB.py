@@ -1,5 +1,12 @@
+#%%
+class point:
+    x: float
+    y: float
+
+print(point(1,1))
+
 # %%
-#! Mutable Default arguments
+#! Mutable Defafult arguments
 
 def foo(n, l=[]):
     l.append(n)
