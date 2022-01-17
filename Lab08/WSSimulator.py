@@ -29,27 +29,58 @@
 from WSPlayer import Player
 
 class Team:
-    def __init__(self, players:list|tuple|set):
+    """this class represents a team.  It holds players and does 
+    all processing related to home runs.  It also allows iteration 
+    functionality similar to itertools.cycle.
+    """
+    def __init__(self, players:list):
+        """constructor for team class
+
+        Args:
+            players (list): an iterable containing all of the player objects.
+        """
         self.players = players
         self.n = 0
         self.score = 0
     def __next__(self):
-        self.n+=1
-        if self.n>=len(self.players):
+        """implementation of iteration for Team class
+
+        Returns:
+            Player: the next player up to bat
+        """
+        self.n+=1 #n is the counter, it increments every time
+        if self.n>=len(self.players): #this just puts the counter back to zero when it gets too big
             self.n-=len(self.players)
         return self.players[self.n]
     def __iter__(self):
+        """__iter__ implementation for Team class
+
+        Returns:
+            Team: self. Nothing happens here because no counters need to be reset every time you create a for loop; you want it to start from where it left off.
+        """
         return self
     def __repr__(self):
+        """__repr__ implementation for Team class.
+
+        Returns:
+            str: the string representation of self
+        """
         output = 'Team('
         for i in self.players: output+= "\n\t" + repr(i)
         output += ")"
         return output
     def reset(self):
+        """resets the home run counter for all players
+        """
         for i in self.players:
             i.resetHomers()
         
     def getHomers(self):
+        """returns all of the home runs, sorted correctly
+
+        Returns:
+            tuple: the sorted home runs, in the form ((playerName:str, homeRuns:int), ...)
+        """
         output={}
         for i in self.players:
             if not i.getHomers()==0:
@@ -68,10 +99,22 @@ class Team:
         return tuple(output)
         
     def addScore(self, points):
+        """simple method to add $points to this team
+
+        Args:
+            points (int): the number of points to add
+        """
         self.score+=points
     def getScore(self):
+        """gets the current score
+
+        Returns:
+            int: the current score of this team
+        """
         return self.score
     def resetScore(self):
+        """resets the score.
+        """
         self.score=0
 class Inning:
     """Inning contains all data and functions needed for one inning.  It keeps track
