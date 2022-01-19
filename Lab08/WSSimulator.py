@@ -127,7 +127,8 @@ class Inning:
 
     The play by play summary is stored in log, and can be accessed with its getter.
     """
-    def __init__(self, number:int, team:str):
+    words=['struck out', 'singled', 'doubled', 'tripled', 'homered']
+    def __init__(self, number:int, team:str, single:bool):
         """constructor for Inning class
 
         Args:
@@ -135,11 +136,13 @@ class Inning:
             team (str): the name of the team playing
         """
         self.runs = 0
-        self.log = '\nInning {num} - {tm}'.format(num=number, tm=team) #log the start
+        self.single=single
+        if self.single: self.log = '\nInning {num} - {tm}'.format(num=number, tm=team) #log the start
         self.outs = 0
         self.bases = [0,0,0] #our shift register is 3 bits long, for 3 bases (serial out represents home base)
 
-    def _shiftBit(self, bit, register:list): #1000x is 3.676e-4 sec
+
+    def _shiftBit(self, bit): #1000x is 3.676e-4 sec
         """shift $bit into $register.  Modifies $register in place and returns the serial out bit. 
         Calling this function is analagous to setting SD_i, sending one clock pulse, then latching.
 
@@ -150,11 +153,13 @@ class Inning:
         Returns:
             int: the serial out bit. type depends on what was shifted in.
         """
-        s_o = register[-1] #s_o is serial out
-        register[:] = [bit]+register #have to do [:] to re assign elements instead of re assigning "register" pointer
-        register[:] = register[:-1] #chop off last bit, to keep the register at length 3.  We've already saved this last bit in s_o.
+        s_o = self.bases[-1] #s_o is serial out
+        # self.bases[:] = [bit]+self.bases #have to do [:] to re assign elements instead of re assigning "self.bases" pointer
+        # self.bases[:] = self.bases[:-1] #chop off last bit, to keep the self.bases at length 3.  We've already saved this last bit in s_o.
+        self.bases = [bit]+self.bases[:-1] #prev two lines condensed
         return s_o
     
+    #@profile
     def addPlay(self, play, player): #1000x = 5.2261e-3 sec
         """adds a play to the inning, and deals with whatever that causes for the bases and scoring.  
         Returns False if the inning should end (too many outs), otherwise True.
@@ -166,12 +171,12 @@ class Inning:
         Returns:
             bool: whether the inning should/can continue (ie false if this play was the third out of the inning)
         """
-        self.log+="\n{person} {result}".format(person=player, result=['struck out', 'singled', 'doubled', 'tripled', 'homered'][play]) #add to playByPlay
+        if self.single: self.log+="\n{person} {result}".format(person=player, result=self.words[play]) #add to playByPlay
         
         # increment self.outs if the batter struck out, and return the appropriate 
         # value (to not continue the function, because we shouldn't shift anything
         # if the player struck out)
-        if play==0:
+        if not play:
             self.outs+=1
             return False if self.outs>=3 else True
 
@@ -187,8 +192,8 @@ class Inning:
         # This information is then written to self.log.  
 
         for i in range(play):
-            a=self._shiftBit(player if i==0 else 0, self.bases)
-            if a!=0: self.log += ' ({person} scored)'.format(person=a)
+            a=self._shiftBit(player if not i else 0)
+            if self.single and not not a: self.log += ' ({person} scored)'.format(person=a)
             self.runs+=1 if not not a else 0 #not not is fast bool
 
         # then also return true because we know there wasn't a new out
@@ -221,7 +226,7 @@ with (open('_astros.data', 'r') as astros,
 
 
 def printGraph(p:list):
-    """prints an ascii graph of the probabilities p
+    """returns an ascii graph of the probabilities p
 
     Args:
         p (list): list of length 8, with all of the probabilities
@@ -236,11 +241,11 @@ def printGraph(p:list):
     #create graph basics
     maximum=max(p)
     graph = [
-           '{maxVal}%|'.rjust(5).format(maxVal=round(maximum)), #max probability
+           '{maxVal}%|'.format(maxVal=round(maximum)).rjust(5), #max probability
             '    |',
             '    |', 
             '    |', 
-           '{midVal}%|'.rjust(5).format(midVal=round(maximum/2)), #middle probability
+           '{midVal}%|'.format(midVal=round(maximum/2)).rjust(5), #middle probability
             '    |',
             '    |', 
             '    |', 
@@ -262,7 +267,7 @@ def printGraph(p:list):
             # elif j<9:
             #     graph[j] += '     '
 
-    #then print the actual thing (go through and print each element of the list)
+    #then return a printable version
     return '\n'.join(graph)
 
 #%%
@@ -296,7 +301,7 @@ def simGame(single):
 
     #    increment innings counter
     while innings<9 or astros.getScore()==braves.getScore():
-        inning = Inning(innings+1, "Astros")
+        inning = Inning(innings+1, "Astros", single)
         for player in astros:
             # inning.addPlay takes the number of bases ran, which we get using player.simHit, 
             # and the player's name, which we get pre-formatted with player.getName.
@@ -319,7 +324,7 @@ def simGame(single):
         astros.addScore(inning.getRuns())
 
         #this is the same as the astros inning
-        inning = Inning(innings+1, "Braves")
+        inning = Inning(innings+1, "Braves", single)
         for player in braves:
             if not inning.addPlay(player.simHit(), player.getName()): 
                 break
@@ -336,6 +341,7 @@ def simGame(single):
     return summaries, scores
 
 #%%
+
 def simOneWS(single=False):
     """simulate one world series.
 
@@ -387,7 +393,7 @@ def simOneWS(single=False):
 Home runs:
 Astros:{aHomers}
 Braves:{bHomers}
-""".format(summ=summary, team='Braves' if wsScore[1]>wsScore[0] else 'Astros', score1=max(wsScore), score2=min(wsScore), ahomers=astrosHomers[:-1], bhomers=[bravesHomers[:-1]])) #as long as we don't put a comma it doesn't register as a tuple, and parens let the first line not be weirdly indented here
+""".format(summ=summary, team='Braves' if wsScore[1]>wsScore[0] else 'Astros', score1=max(wsScore), score2=min(wsScore), aHomers=astrosHomers[:-1], bHomers=[bravesHomers[:-1]])) #as long as we don't put a comma it doesn't register as a tuple, and parens let the first line not be weirdly indented here
 
 
             ### all the stuff for multiSeriesStr (the thing to output to the file)

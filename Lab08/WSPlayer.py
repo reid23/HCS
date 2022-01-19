@@ -22,6 +22,7 @@ class Player:
     def __init__(self, lastName, firstName, battingAverage, hits, doubles, triples, homeRuns):
         self.lastName=lastName
         self.firstName=firstName
+        self.formattedName=f'{self.firstName[:1]}. {self.lastName}'
         self.battingAverage=battingAverage
         self.hits=hits
         self.doubles=doubles
@@ -30,6 +31,7 @@ class Player:
         self.singles=hits-(doubles+triples+homeRuns)
         self.fails=(hits/battingAverage)-hits #total number of misses
         self.homers = 0
+
 
         self.upperBound = self.fails+self.singles+self.doubles+self.triples+self.homeRuns
         self.out=self.fails
@@ -61,6 +63,6 @@ class Player:
         self.homers=0
     
     def getName(self):
-        return f'{self.firstName[:1]}. {self.lastName}'
+        return self.formattedName
 
 # %%
