@@ -26,6 +26,8 @@
 #* concurrently, which helped speed up the process a lot.
 
 
+import time
+from unicodedata import name
 from WSPlayer import Player
 
 #* Team and Inning classes below. Classes end on line 208. 
@@ -52,8 +54,9 @@ class Team:
             Player: the next player up to bat
         """
         self.n+=1 #n is the counter, it increments every time
-        if self.n>=len(self.players): #this just puts the counter back to zero when it gets too big
-            self.n-=len(self.players)
+        length=len(self.players)
+        if self.n>=length: #this just puts the counter back to zero when it gets too big
+            self.n-=length
         return self.players[self.n]
     def __iter__(self):
         """__iter__ implementation for Team class
@@ -92,13 +95,8 @@ class Team:
 
         #my lazy sorting, because i forget how gt, lt, ge, le, etc. are implemented for strings
         #sort several times from lowest to highest priority, so that ties are determined by the next highest priority untied thing
-        output.sort(key=lambda a:a[0][3]) #sort by last name first char
-        output.sort(key=lambda a:a[0][4]) #sort by last name second char
-        output.sort(key=lambda a:a[0][5]) #sort by last name third char
-        output.sort(key=lambda a:-a[1])    #sort by home runs
-        #! CHECK ABOUT d'Arnold
-        #? HOW TO SORT?'
-        #? maybe make players sortable
+        output.sort(key=lambda a:a[0][3:6]) #sort by last name
+        output.sort(key=lambda a:-a[1])   #sort by home runs
 
         return tuple(output)
         
@@ -134,9 +132,10 @@ class Inning:
             team (str): the name of the team playing
         """
         self.runs = 0
-        self.log = f'\nInning {number} - {team}' #log the start
+        self.log = '\nInning {num} - {tm}'.format(num=number, tm=team) #log the start
         self.outs = 0
         self.bases = [0,0,0] #our shift register is 3 bits long, for 3 bases (serial out represents home base)
+
     def _shiftBit(self, bit, register:list):
         """shift $bit into $register.  Modifies $register in place and returns the serial out bit. 
         Calling this function is analagous to setting SD_i, sending one clock pulse, then latching.
@@ -163,7 +162,7 @@ class Inning:
         Returns:
             bool: whether the inning should/can continue (ie false if this play was the third out of the inning)
         """
-        self.log+=f"\n{player} {['struck out', 'singled', 'doubled', 'tripled', 'homered'][play]}" #add to playByPlay
+        self.log+="\n{person} {result}".format(person=player, result=['struck out', 'singled', 'doubled', 'tripled', 'homered'][play]) #add to playByPlay
         
         # increment self.outs if the batter struck out, and return the appropriate 
         # value (to not continue the function, because we shouldn't shift anything
@@ -185,8 +184,8 @@ class Inning:
 
         for i in range(play):
             a=self._shiftBit(player if i==0 else 0, self.bases)
-            if a!=0: self.log += f' ({a} scored)'
-            self.runs+=1 if bool(a) else 0 #TODO: ask is this okay "$player homered ($player scored) ($player1 scored)"
+            if a!=0: self.log += ' ({person} scored)'.format(person=a)
+            self.runs+=1 if bool(a) else 0
 
         # then also return true because we know there wasn't a new out
         return True
@@ -321,65 +320,73 @@ def simGame():
         innings+=1
     return summaries, scores
 
-def simOneWS():
+def simOneWS(single=False):
     """simulate one world series.
 
     Returns:
         tuple: the results of the world series, in the form (summaryForSingleWSShellOutputPreFormatted:str, playByPlayLogPreFormatted:str, multiSeriesRecapLineFormattedForFileOutput:str)
     """
+    global astros
+    global braves
     playByPlay, summary, singleWSSum = '', '', ''
     wsScore = [0, 0]
     astros.reset()
     braves.reset()
-    for i in range(100): #just use big number
+    for i in range(10): #just use big number
         summaries, scores = simGame() #actually simulate the game
-
-        # header for playbyplay log
-        # this is the only reason i'm using a for loop instead of a while
-        playByPlay += f'========== Game {i+1} ==========\n'
-        
-        for summ, score in zip(summaries, scores): #for each inning's data:
-            playByPlay += f'{summ}\nScore: Astros: {score[0]}, Braves: {score[1]}\n' #add ths game's summary and scores to playByPlay
         
         if scores[-1][0]>scores[-1][1]:
-            wsScore[0]+=1 #increment astros WS score
-        if scores[-1][0]<scores[-1][1]:
-            wsScore[1]+=1 #increment braves WS score
+            wsScore[0]+=1
+        else:
+            wsScore[1]+=1
+
+        if single: #save time if these logs are not needed
+            # header for playbyplay log
+            # this is the only reason i'm using a for loop instead of a while
+            playByPlay += f'========== Game {i+1} ==========\n'
+            
+            for summ, score in zip(summaries, scores): #for each inning's data:
+                playByPlay += f'{summ}\nScore: Astros: {score[0]}, Braves: {score[1]}\n' #add ths game's summary and scores to playByPlay
+            
+            #add the summary of this game, with the ordering right based on who's winning
+            summary += f"Game {i+1}: {f'Braves: {scores[-1][1]}, Astros: {scores[-1][0]}' if scores[-1][0]<scores[-1][1] else f'Astros: {scores[-1][0]}, Braves: {scores[-1][1]}'}\n"
         
-        #add the summary of this game, with the ordering right based on who's winning
-        summary += f"Game {i+1}: {f'Braves: {scores[-1][1]}, Astros: {scores[-1][0]}' if scores[-1][0]<scores[-1][1] else f'Astros: {scores[-1][0]}, Braves: {scores[-1][1]}'}\n"
 
         if 4 in wsScore: #check if anyone's won the WS
             ### all the stuff for singleWSSum:
             astrosHomers, bravesHomers = '', '' #init vars
 
-            for i in astros.getHomers(): astrosHomers+=f" {i[0]} {i[1]}," #format the sorted list into a presentable string
-            for i in braves.getHomers(): bravesHomers+=f" {i[0]} {i[1]}," #^
+            for i in astros.getHomers(): astrosHomers+=" {name} {homes},".format(name=i[0], homes=i[1]) #format the sorted list into a presentable string
+            for i in braves.getHomers(): bravesHomers+=" {name} {homes},".format(name=i[0], homes=i[1]) # ^
             
             #\n's expanded for readability, at the expense of the aesthetics
             #seriously this looks super weird with the string not indented
-            singleWSSum=(
-f"""Results of World Series simulation:
+            if single: 
+                singleWSSum=(
+"""Results of World Series simulation:
 
-{summary}
+{summ}
 
-{'Braves' if wsScore[1]>wsScore[0] else 'Astros'} win the series {max(wsScore)}-{min(wsScore)}
+{team} win the series {score1}-{score2}
 
 
 Home runs:
-Astros:{astrosHomers[:-1]}
-Braves:{bravesHomers[:-1]}
-""") #as long as we don't put a comma it doesn't register as a tuple, and parens let the first line not be weirdly indented here
+Astros:{aHomers}
+Braves:{bHomers}
+""".format(summ=summary, team='Braves' if wsScore[1]>wsScore[0] else 'Astros', score1=max(wsScore), score2=min(wsScore), ahomers=astrosHomers[:-1], bhomers=[bravesHomers[:-1]])) #as long as we don't put a comma it doesn't register as a tuple, and parens let the first line not be weirdly indented here
 
 
             ### all the stuff for multiSeriesStr (the thing to output to the file)
-            multiSeriesStr = f'{"Braves" if wsScore[1]>wsScore[0] else "Astros"} win in {sum(wsScore)}'
-
-            # then break out of the 100x for loop because the ws is over and we shouldn't sim more games
+            else:
+                multiSeriesStr = '{first} win in {num}'.format(first="Braves" if wsScore[1]>wsScore[0] else "Astros", num=sum(wsScore))
+            # then break out of the 10x for loop because the ws is over and we shouldn't sim more games
             break
 
     #return stuff!
-    return singleWSSum, playByPlay, multiSeriesStr
+    if single:
+        return singleWSSum, playByPlay
+    else:
+        return multiSeriesStr
     
 
 def main():
@@ -398,9 +405,10 @@ Enter the number of World Series you'd like to simulate: ''')
             break
         except ValueError:
             number = input(f'{number} is an invalid input. Try again: ')
+    startTime=time.time()
     #if we only need to do one ws, do this.  Just does one and prints the stuff and writes to the file.
     if number==1:
-        results = simOneWS() #simulate
+        results = simOneWS(True) #simulate
         print(results[0])    #print preformatted shell output
         with open('WSPlayByPlay.log', 'w') as f:
             f.write(results[1]) #log preformatted play by play
@@ -417,21 +425,23 @@ Enter the number of World Series you'd like to simulate: ''')
             'B6':0,
             'B7':0,
         }
+        multiLog = ''
 
-        #output stuff to fiel
+        #simulate all the WS's
+        for i in range(number):
+            WSData = simOneWS(False) #do the simulation
+            results['{data_0}{data_1}'.format(data_0=WSData[0], data_1=WSData[-1])]+=1 #increment the correct area in the results dict corrosponding to the result of the simulation
+            multiLog+='{a}: {data}\n'.format(a=i+1, data=WSData) #write the line to the file, with the ws number and the outcome.
+
+        #output stuff to file
         with open('WSmultiseries.log', 'w') as f:
             #header
-            f.write('Astros-Braves World Series Simulation\n')
+            f.write('Astros-Braves World Series Simulation\n\n{mL}'.format(mL=multiLog))
 
-            #simulate all the WS's
-            for i in range(number):
-                WSData = simOneWS()[2] #do the simulation
-                results[f'{WSData[0]}{WSData[-1]}']+=1 #increment the correct area in the results dict corrosponding to the result of the simulation
-                f.write(f'{i+1}: {WSData}') #write the line to the file, with the ws number and the outcome.
         
         ### shell output
         #header
-        print(f'Results of {number} World Series Simulations\n')
+        print('Results of {num} World Series Simulations\n'.format(num=number))
         
         #get the probabilities by dividing each outcome's frequency by the total number of outcomes
         wins = tuple(results.values())
@@ -439,8 +449,8 @@ Enter the number of World Series you'd like to simulate: ''')
         p = [round(i/sum(results.values())*100, 1) for i in results.values()] #create list of probabilities of each case happening
 
         #print the probabilities
-        for i in range(4): print(f'Astros win in {i+4}: {p[i]}%')
-        for i in range(4): print(f'Braves win in {i+4}: {p[i+4]}%')
+        for i in range(4): print('Astros win in {num}: {prob}%'.format(num=i+4, prob=p[i]))
+        for i in range(4): print('Braves win in {num}: {prob}%'.format(num=i+4, prob=p[i+4]))
 
         ### print an ascii graph
         #title
@@ -448,6 +458,10 @@ Enter the number of World Series you'd like to simulate: ''')
         #actual graph
         printGraph(p)
 
+
+    endTime=time.time()
+
+    print(f'\nTime taken for {number} simulations: {endTime-startTime}s')
 
     
 if __name__=='__main__': main()
