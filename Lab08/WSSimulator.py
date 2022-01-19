@@ -1,4 +1,4 @@
-
+#%%
 # Author: Reid Dye
 
 # This file contains the code to run world series simulations, as per the Lab08 specs.
@@ -27,12 +27,13 @@
 
 
 import time
-from unicodedata import name
 from WSPlayer import Player
 
 #* Team and Inning classes below. Classes end on line 208. 
 #C-u 176 C-n
 #* Then there's functions.  Main() is on 
+
+#%%
 class Team:
     """this class represents a team.  It holds players and does 
     all processing related to home runs.  It also allows iteration 
@@ -118,6 +119,8 @@ class Team:
         """resets the score.
         """
         self.score=0
+
+#%%
 class Inning:
     """Inning contains all data and functions needed for one inning.  It keeps track
     of the bases with a virtual 3-bit SIPO shift register.
@@ -136,7 +139,7 @@ class Inning:
         self.outs = 0
         self.bases = [0,0,0] #our shift register is 3 bits long, for 3 bases (serial out represents home base)
 
-    def _shiftBit(self, bit, register:list):
+    def _shiftBit(self, bit, register:list): #1000x is 3.676e-4 sec
         """shift $bit into $register.  Modifies $register in place and returns the serial out bit. 
         Calling this function is analagous to setting SD_i, sending one clock pulse, then latching.
 
@@ -151,7 +154,8 @@ class Inning:
         register[:] = [bit]+register #have to do [:] to re assign elements instead of re assigning "register" pointer
         register[:] = register[:-1] #chop off last bit, to keep the register at length 3.  We've already saved this last bit in s_o.
         return s_o
-    def addPlay(self, play, player):
+    
+    def addPlay(self, play, player): #1000x = 5.2261e-3 sec
         """adds a play to the inning, and deals with whatever that causes for the bases and scoring.  
         Returns False if the inning should end (too many outs), otherwise True.
 
@@ -185,7 +189,7 @@ class Inning:
         for i in range(play):
             a=self._shiftBit(player if i==0 else 0, self.bases)
             if a!=0: self.log += ' ({person} scored)'.format(person=a)
-            self.runs+=1 if bool(a) else 0
+            self.runs+=1 if not not a else 0 #not not is fast bool
 
         # then also return true because we know there wasn't a new out
         return True
@@ -201,9 +205,11 @@ class Inning:
         """get the current number of runs.  
 
         Returns:
-            [type]: [description]
+            int: the current number of runs in this inning
         """
         return self.runs
+
+#%%
 
 ###! END OF CLASSES
 
@@ -213,6 +219,7 @@ with (open('_astros.data', 'r') as astros,
       astros = Team([Player(*i) for i in eval(astros.read())])
       braves = Team([Player(*i) for i in eval(braves.read())])
 
+
 def printGraph(p:list):
     """prints an ascii graph of the probabilities p
 
@@ -220,19 +227,20 @@ def printGraph(p:list):
         p (list): list of length 8, with all of the probabilities
     """
     #make sure its the right length
-    assert len(p) == 8, f'input list length is incompatable, expected len(p)==8 but received {len(p)}'
+    #assert len(p) == 8, f'input list length is incompatable, expected len(p)==8 but received {len(p)}'
 
     #reorder the second half so it looks like a bell curve in the graph
     #because the odds should go a6, a7, b7, b6, etc to make sense
     p=p[0:4]+p[8:3:-1]
 
     #create graph basics
+    maximum=max(p)
     graph = [
-           f'{round(max(p))}%|'.rjust(5), #max probability
+           '{maxVal}%|'.rjust(5).format(maxVal=round(maximum)), #max probability
             '    |',
             '    |', 
             '    |', 
-           f'{round(max(p)/2)}%|'.rjust(5), #middle probability
+           '{midVal}%|'.rjust(5).format(midVal=round(maximum/2)), #middle probability
             '    |',
             '    |', 
             '    |', 
@@ -245,17 +253,20 @@ def printGraph(p:list):
     #       if the row represents the right probability, put the datapoint.  
     #       else put the equivalent number of spaces.
     for i in p:
-        index = len(graph)-(round(8*(i/max(p)))+2)
-        for j in range(len(graph)):
-            if j==index: 
-                graph[j] += ' **  '
-            elif j<9:
-                graph[j] += '     '
+        index = 11-(round(8*(i/maximum))+2) #11 is len(graph)
+        for j in range(9): #9 because there's 8 rows in the graph
+            graph[j]+=' **  ' if j==index else '     '
+            #the line above does the following faster:
+            # if j==index: 
+            #     graph[j] += ' **  '
+            # elif j<9:
+            #     graph[j] += '     '
 
     #then print the actual thing (go through and print each element of the list)
-    for i in graph: print(i)
+    return '\n'.join(graph)
 
-def simGame():
+#%%
+def simGame(single):
     """simulates one game.
 
     Returns:
@@ -303,7 +314,8 @@ def simGame():
             if not inning.addPlay(player.simHit(), player.getName()):
                 break
         
-        summaries.append(inning.getSummary())
+        if single: #removing this append saves ~0.2s per 10000 ws sims
+            summaries.append(inning.getSummary())
         astros.addScore(inning.getRuns())
 
         #this is the same as the astros inning
@@ -311,29 +323,31 @@ def simGame():
         for player in braves:
             if not inning.addPlay(player.simHit(), player.getName()): 
                 break
-        summaries.append(inning.getSummary())
+
+        if single: #same time savings
+            summaries.append(inning.getSummary())
         braves.addScore(inning.getRuns())
 
 
-        scores.append([astros.getScore(), braves.getScore()])
+        if single: scores.append([astros.getScore(), braves.getScore()])
 
         innings+=1
+    if not single: scores=[[astros.getScore(), braves.getScore()]] #extra axis for compatability, this if also saves about the same amount of time
     return summaries, scores
 
+#%%
 def simOneWS(single=False):
     """simulate one world series.
 
     Returns:
         tuple: the results of the world series, in the form (summaryForSingleWSShellOutputPreFormatted:str, playByPlayLogPreFormatted:str, multiSeriesRecapLineFormattedForFileOutput:str)
     """
-    global astros
-    global braves
     playByPlay, summary, singleWSSum = '', '', ''
     wsScore = [0, 0]
     astros.reset()
     braves.reset()
     for i in range(10): #just use big number
-        summaries, scores = simGame() #actually simulate the game
+        summaries, scores = simGame(single) #actually simulate the game
         
         if scores[-1][0]>scores[-1][1]:
             wsScore[0]+=1
@@ -389,6 +403,7 @@ Braves:{bHomers}
         return multiSeriesStr
     
 
+#%%
 def main():
     'main function!'
     number = input('''Welcome to the World Series Simulator!
@@ -441,22 +456,23 @@ Enter the number of World Series you'd like to simulate: ''')
         
         ### shell output
         #header
-        print('Results of {num} World Series Simulations\n'.format(num=number))
+        shellOutput='\nResults of {num} World Series Simulations\n'.format(num=number)
         
         #get the probabilities by dividing each outcome's frequency by the total number of outcomes
         wins = tuple(results.values())
         sumWins = sum(wins)
-        p = [round(i/sum(results.values())*100, 1) for i in results.values()] #create list of probabilities of each case happening
+        p = [round(i/sumWins*100, 1) for i in results.values()] #create list of probabilities of each case happening
 
         #print the probabilities
-        for i in range(4): print('Astros win in {num}: {prob}%'.format(num=i+4, prob=p[i]))
-        for i in range(4): print('Braves win in {num}: {prob}%'.format(num=i+4, prob=p[i+4]))
+        for i in range(4): shellOutput+='\nAstros win in {num}: {prob}%'.format(num=i+4, prob=p[i])
+        for i in range(4): shellOutput+='\nBraves win in {num}: {prob}%'.format(num=i+4, prob=p[i+4])
 
         ### print an ascii graph
         #title
-        print('     '+'percentage of games in each scenario:'.center(40)+'\n')
-        #actual graph
-        printGraph(p)
+        shellOutput+='\n     '+'percentage of games in each scenario:'.center(40)+'\n\n'
+
+        #graph and all other shell output
+        print(shellOutput+printGraph(p))
 
 
     endTime=time.time()

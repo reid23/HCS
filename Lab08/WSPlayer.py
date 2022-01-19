@@ -1,4 +1,23 @@
+#%%
 from random import uniform as r
+# from numba import int32, float32, typeof, njit
+# from numba.experimental import jitclass
+# #%%
+# spec=[
+#     ('lastName', typeof('test')),
+#     ('firstName', typeof('test')),
+#     ('battingAverage', float32),
+#     ('hits', int32),
+#     ('doubles', int32),
+#     ('triples', int32),
+#     ('homeRuns', int32),
+#     ('singles', int32),
+#     ('fails', float32),
+#     ('homers', int32),
+
+# ]
+# #%%
+# @jitclass(spec)
 class Player:
     def __init__(self, lastName, firstName, battingAverage, hits, doubles, triples, homeRuns):
         self.lastName=lastName
@@ -9,21 +28,28 @@ class Player:
         self.triples=triples
         self.homeRuns=homeRuns
         self.singles=hits-(doubles+triples+homeRuns)
-        self.fails = hits/battingAverage #total number of misses
+        self.fails=(hits/battingAverage)-hits #total number of misses
         self.homers = 0
+
+        self.upperBound = self.fails+self.singles+self.doubles+self.triples+self.homeRuns
+        self.out=self.fails
+        self.single=self.fails+self.singles
+        self.double=self.single+self.doubles
+        self.triple=self.double+self.triples
 
     def __repr__(self):
         return f"Player('{self.lastName}', '{self.firstName}', {self.battingAverage}, {self.hits}, {self.doubles}, {self.triples}, {self.homeRuns})"
 
+
     def simHit(self):
-        val=r(0, self.fails+self.singles+self.doubles+self.triples+self.homeRuns)
-        if val<=self.fails:
+        val=r(0, self.upperBound)
+        if val<=self.out:
             return 0
-        elif self.fails<val<=self.fails+self.singles:
+        elif self.out<val<=self.single:
             return 1
-        elif self.fails+self.singles<val<=self.fails+self.singles+self.doubles:
+        elif self.single<val<=self.double:
             return 2
-        elif self.fails+self.singles+self.doubles<val<=self.fails+self.singles+self.doubles+self.triples:
+        elif self.double<val<=self.triple:
             return 3
         else:
             self.homers+=1
@@ -36,3 +62,5 @@ class Player:
     
     def getName(self):
         return f'{self.firstName[:1]}. {self.lastName}'
+
+# %%
