@@ -18,13 +18,7 @@ from random import uniform as r
 # ]
 # #%%
 # @jitclass(spec)
-from threading import Thread
-class randBuffer:
-    def __init__(self):
-        self.num=[]
-        self.t=Thread(target=self.genNums)
-    def pop(self):
-        return self.num.pop()
+
 
 class Player:
     def __init__(self, lastName, firstName, battingAverage, hits, doubles, triples, homeRuns):
@@ -47,23 +41,31 @@ class Player:
         self.double=self.single+self.doubles
         self.triple=self.double+self.triples
 
+        self.randNums=[r(0, self.upperBound) for _ in range(100000)]
+        for counter, i in enumerate(self.randNums):
+            if i<self.out:
+                self.randNums[counter] = 0
+            elif self.out<=i<self.single:
+                self.randNums[counter] = 1
+            elif self.single<=i<self.double:
+                self.randNums[counter] = 2
+            elif self.double<=i<self.triple:
+                self.randNums[counter] = 3
+            else:
+                self.homers+=1
+                self.randNums[counter] = 4
+        self.n=0
+
     def __repr__(self):
         return f"Player('{self.lastName}', '{self.firstName}', {self.battingAverage}, {self.hits}, {self.doubles}, {self.triples}, {self.homeRuns})"
 
 
     def simHit(self):
-        val=r(0, self.upperBound)
-        if val<self.out:
-            return 0
-        elif self.out<=val<self.single:
-            return 1
-        elif self.single<=val<self.double:
-            return 2
-        elif self.double<=val<self.triple:
-            return 3
-        else:
-            self.homers+=1
-            return 4
+        val=self.randNums[self.n]
+        self.n+=1
+        if self.n==100000: self.n=0
+        if val==4: self.homers+=1
+        return val
     
     def getHomers(self):
         return self.homers

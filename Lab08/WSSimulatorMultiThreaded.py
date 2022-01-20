@@ -26,10 +26,11 @@
 #* concurrently, which helped speed up the process a lot.
 
 
+from threading import Thread
 import time
 from WSPlayer import Player
-from multiprocessing import Process
-from numba import jit, cuda
+from numba import jit
+
 #* Team and Inning classes below. Classes end on line 208. 
 #C-u 176 C-n
 #* Then there's functions.  Main() is on 
@@ -50,7 +51,6 @@ class Team:
         self.numPlayers=len(players)
         self.n = 0
         self.score = 0
-    #@profile
     def __next__(self):
         """implementation of iteration for Team class
 
@@ -58,7 +58,7 @@ class Team:
             Player: the next player up to bat
         """
         self.n+=1 #n is the counter, it increments every time
-        if self.n>=8: #this just puts the counter back to zero when it gets too big
+        if self.n>=self.numPlayers: #this just puts the counter back to zero when it gets too big
             self.n = 0
         return self.players[self.n]
     def __iter__(self):
@@ -160,6 +160,7 @@ class Inning:
 
         return self.bases.pop() #remove last element and return it (this is s_o)
     
+    #@profile
     def addPlay(self, play, player): #1000x = 5.2261e-3 sec
         """adds a play to the inning, and deals with whatever that causes for the bases and scoring.  
         Returns False if the inning should end (too many outs), otherwise True.
@@ -274,7 +275,7 @@ def printGraph(p:list):
     return '\n'.join(graph)
 
 #%%
-# @profile
+@jit(forceobj=True, nogil=True)
 def simGame(single):
     """simulates one game.
 
@@ -345,7 +346,7 @@ def simGame(single):
     return summaries, scores
 
 #%%
-
+@jit(forceobj=True, nogil=True)
 def simOneWS(single=False):
     """simulate one world series.
 
@@ -415,7 +416,18 @@ Braves:{bHomers}
 
 #%%
 
+
 def main():
+    simMultiple(1, 1, {
+            'A4':0,
+            'A5':0,
+            'A6':0,
+            'A7':0,
+            'B4':0,
+            'B5':0,
+            'B6':0,
+            'B7':0,
+        }, {})
     'main function!'
     number = input('''Welcome to the World Series Simulator!
 
@@ -423,18 +435,6 @@ This program will simulate a World Series matchup between the
 Houston Astros and the Atlanta Braves.
 
 Enter the number of World Series you'd like to simulate: ''')
-    #init vars
-    results = {
-        'A4':0,
-        'A5':0,
-        'A6':0,
-        'A7':0,
-        'B4':0,
-        'B5':0,
-        'B6':0,
-        'B7':0,
-    }
-    multiLog = ''
     #wait for valid input
     while True:
         try:
@@ -453,17 +453,39 @@ Enter the number of World Series you'd like to simulate: ''')
             #by writing all the stuff at the end, we save a lot of computation time.  
             #writing to files is much slower that saving to a string in ram
     else:
-        #simulate all the WS's
-        for i in range(number):
-            WSData = simOneWS(False) #do the simulation
-            results['{data_0}{data_1}'.format(data_0=WSData[0], data_1=WSData[-1])]+=1 #increment the correct area in the results dict corrosponding to the result of the simulation
-            
-            multiLog+='{a}: {data}\n'.format(a=i+1, data=WSData) #write the line to the file, with the ws number and the outcome.
+        results = { #init var
+            'A4':0,
+            'A5':0,
+            'A6':0,
+            'A7':0,
+            'B4':0,
+            'B5':0,
+            'B6':0,
+            'B7':0,
+        }
+        multiLog = {}
 
+        threads=[]
+        maxThreads=50 if number>=1000 else int(number/10)
+        perThread=int(number/maxThreads)
+        for i in range(maxThreads):
+            threads.append(Thread(target=simMultiple, args=[perThread, i, results, multiLog]))
+            threads[-1].start()
+        
+        threads.append(Thread(target=simMultiple, args=[number-(maxThreads*perThread), i, results, multiLog]))
+        threads[-1].start()
+
+        for t in threads:
+            t.join()
+            
+        print(results, sum(list(results.values())))
+
+
+        
         #output stuff to file
         with open('WSmultiseries.log', 'w') as f:
             #header
-            f.write('Astros-Braves World Series Simulation\n\n{mL}'.format(mL=multiLog))
+            f.write('Astros-Braves World Series Simulation\n\n{mL}'.format(mL=''.join(['{k}: {v}\n'.format(k=key, v=val) for key, val in multiLog.items()])))
 
         
         ### shell output
@@ -473,7 +495,7 @@ Enter the number of World Series you'd like to simulate: ''')
         #get the probabilities by dividing each outcome's frequency by the total number of outcomes
         wins = tuple(results.values())
         sumWins = sum(wins)
-        p = [round(i/sumWins*100, 1) for i in wins] #create list of probabilities of each case happening
+        p = [round(i/sumWins*100, 1) for i in results.values()] #create list of probabilities of each case happening
 
         #print the probabilities
         for i in range(4): shellOutput+='\nAstros win in {num}: {prob}%'.format(num=i+4, prob=p[i])
@@ -491,5 +513,11 @@ Enter the number of World Series you'd like to simulate: ''')
 
     print(f'\nTime taken for {number} simulations: {endTime-startTime}s')
 
+@jit(forceobj=True, nogil=True)
+def simMultiple(num, yourThread, results, multiLog):
+    for i in range(num):
+        WSData = simOneWS(False)
+        results['{data_0}{data_1}'.format(data_0=WSData[0], data_1=WSData[-1])]+=1
+        multiLog[i+1+yourThread]=WSData
     
 if __name__=='__main__': main()
