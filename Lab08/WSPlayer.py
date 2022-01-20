@@ -18,6 +18,14 @@ from random import uniform as r
 # ]
 # #%%
 # @jitclass(spec)
+from threading import Thread
+class randBuffer:
+    def __init__(self):
+        self.num=[]
+        self.t=Thread(target=self.genNums)
+    def pop(self):
+        return self.num.pop()
+
 class Player:
     def __init__(self, lastName, firstName, battingAverage, hits, doubles, triples, homeRuns):
         self.lastName=lastName
@@ -45,13 +53,13 @@ class Player:
 
     def simHit(self):
         val=r(0, self.upperBound)
-        if val<=self.out:
+        if val<self.out:
             return 0
-        elif self.out<val<=self.single:
+        elif self.out<=val<self.single:
             return 1
-        elif self.single<val<=self.double:
+        elif self.single<=val<self.double:
             return 2
-        elif self.double<val<=self.triple:
+        elif self.double<=val<self.triple:
             return 3
         else:
             self.homers+=1

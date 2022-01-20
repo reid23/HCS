@@ -1,4 +1,15 @@
 #%%
+from numba import njit, jit
+
+@jit(nopython=True)
+def ncat(a, b):
+    return a+b
+
+def ccat(a, b):
+    return a+b
+
+
+#%%
 class foo:
     def __init__(self, num):
         self.num=num
@@ -57,7 +68,6 @@ def add(a, b):
 def mult(a, b):
     return a*b
 
-<<<<<<< HEAD
 
 def bc(a, b, func):
     s_a = _shape(a)
@@ -68,8 +78,6 @@ def bc(a, b, func):
     if len(s_a)
 
 
-=======
->>>>>>> fbb17f37e4de34307292bdf7ec07ac2b4a22abdb
 def _shape(a):
     shape = []
     while True:
@@ -80,12 +88,10 @@ def _shape(a):
         a=a[0]
     return tuple(shape)
 
-<<<<<<< HEAD
 
 
 #%%
 
-=======
 def bc(A, B, func):
     a=A.copy()
     b=B.copy()
@@ -140,4 +146,3 @@ def zeroes(shape):
 
 
 # %%
->>>>>>> fbb17f37e4de34307292bdf7ec07ac2b4a22abdb

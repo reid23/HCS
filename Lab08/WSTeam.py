@@ -1,12 +1,13 @@
 class Team:
     def __init__(self, players):
         self.players = players
+        self.numPlayers=len(players)
         self.n = 0
         self.score = 0
     def __next__(self):
         self.n+=1
-        if self.n>=len(self.players):
-            self.n-=len(self.players)
+        if self.n>=self.numPlayers:
+            self.n = 0 #wrap around the list
         return self.players[self.n]
     def __iter__(self):
         return self

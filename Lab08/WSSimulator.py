@@ -28,6 +28,9 @@
 
 import time
 from WSPlayer import Player
+from numba import njit
+from numba.experimental import jitclass
+import numpy as np
 
 #* Team and Inning classes below. Classes end on line 208. 
 #C-u 176 C-n
@@ -46,6 +49,7 @@ class Team:
             players (list): an iterable containing all of the player objects.
         """
         self.players = players
+        self.numPlayers=len(players)
         self.n = 0
         self.score = 0
     def __next__(self):
@@ -55,9 +59,8 @@ class Team:
             Player: the next player up to bat
         """
         self.n+=1 #n is the counter, it increments every time
-        length=len(self.players)
-        if self.n>=length: #this just puts the counter back to zero when it gets too big
-            self.n-=length
+        if self.n>=self.numPlayers: #this just puts the counter back to zero when it gets too big
+            self.n = 0
         return self.players[self.n]
     def __iter__(self):
         """__iter__ implementation for Team class
@@ -88,18 +91,18 @@ class Team:
         Returns:
             tuple: the sorted home runs, in the form ((playerName:str, homeRuns:int), ...)
         """
-        output={}
+        output=[]
         for i in self.players:
-            if not i.getHomers()==0:
-                output[i.getName()]=i.getHomers()
-        output=list(output.items())
+            homers=i.getHomers()
+            if not not homers:
+                output.append((i.getName(), homers))
 
         #my lazy sorting, because i forget how gt, lt, ge, le, etc. are implemented for strings
         #sort several times from lowest to highest priority, so that ties are determined by the next highest priority untied thing
-        output.sort(key=lambda a:a[0][3:6]) #sort by last name
+        output.sort(key=lambda a:a[0][3:]) #sort by last name
         output.sort(key=lambda a:-a[1])   #sort by home runs
 
-        return tuple(output)
+        return output
         
     def addScore(self, points):
         """simple method to add $points to this team
@@ -121,6 +124,7 @@ class Team:
         self.score=0
 
 #%%
+#@jitclass
 class Inning:
     """Inning contains all data and functions needed for one inning.  It keeps track
     of the bases with a virtual 3-bit SIPO shift register.
@@ -137,12 +141,11 @@ class Inning:
         """
         self.runs = 0
         self.single=single
-        if self.single: self.log = '\nInning {num} - {tm}'.format(num=number, tm=team) #log the start
+        if single: self.log = '\nInning {num} - {tm}'.format(num=number, tm=team) #log the start
         self.outs = 0
         self.bases = [0,0,0] #our shift register is 3 bits long, for 3 bases (serial out represents home base)
 
-
-    def _shiftBit(self, bit): #1000x is 3.676e-4 sec
+    def _shiftBit(self, bit):
         """shift $bit into $register.  Modifies $register in place and returns the serial out bit. 
         Calling this function is analagous to setting SD_i, sending one clock pulse, then latching.
 
@@ -153,11 +156,10 @@ class Inning:
         Returns:
             int: the serial out bit. type depends on what was shifted in.
         """
-        s_o = self.bases[-1] #s_o is serial out
-        # self.bases[:] = [bit]+self.bases #have to do [:] to re assign elements instead of re assigning "self.bases" pointer
-        # self.bases[:] = self.bases[:-1] #chop off last bit, to keep the self.bases at length 3.  We've already saved this last bit in s_o.
-        self.bases = [bit]+self.bases[:-1] #prev two lines condensed
-        return s_o
+
+        self.bases.insert(0, bit) #put new bit at beginning
+
+        return self.bases.pop() #remove last element and return it (this is s_o)
     
     #@profile
     def addPlay(self, play, player): #1000x = 5.2261e-3 sec
@@ -178,7 +180,7 @@ class Inning:
         # if the player struck out)
         if not play:
             self.outs+=1
-            return False if self.outs>=3 else True
+            return self.outs<3
 
         # actually shift the bit
         # shifts 1 for the first base, then shifts enough zeroes to move 
@@ -186,15 +188,18 @@ class Inning:
         # this shifts in [1, 0, 0], so that there's now a player on third,
         # and everyone else has been pushed three bases.
 
-        # if the serial out bit is 1 for any given shift, the score 
+        # if the serial out bit is non-zero for any given shift, the score 
         # (self.runs) is incremented, because a 1 in serial out 
         # represents a player reaching home base (leaving the register).
         # This information is then written to self.log.  
 
         for i in range(play):
             a=self._shiftBit(player if not i else 0)
-            if self.single and not not a: self.log += ' ({person} scored)'.format(person=a)
-            self.runs+=1 if not not a else 0 #not not is fast bool
+            
+            if self.single and not not a: self.log += ' ({person} scored)'.format(person=a) #TODO put down below
+            
+            if not not a: 
+                self.runs+=1#not not is fast bool
 
         # then also return true because we know there wasn't a new out
         return True
@@ -271,6 +276,7 @@ def printGraph(p:list):
     return '\n'.join(graph)
 
 #%%
+
 def simGame(single):
     """simulates one game.
 
@@ -410,6 +416,7 @@ Braves:{bHomers}
     
 
 #%%
+
 def main():
     'main function!'
     number = input('''Welcome to the World Series Simulator!
