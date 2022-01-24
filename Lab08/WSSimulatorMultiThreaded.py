@@ -1,43 +1,24 @@
 #%%
 # Author: Reid Dye
 
-# This file contains the code to run world series simulations, as per the Lab08 specs.
+# This file contains the code to run world series simulations, except using multiple threads (4) to speed up computation.
+# because throwing more computing power at your slow python algorithms is always the right answer
 
-#* I used top-down design for planning, then prototyping to implement that.  I planned out that
-#* I would need the main function to handle input, output, and calling simulations multiple times.
-#* Then I would need a function to simulate one world series, which would in turn need a function
-#* to simulate one game.  That's how I came up with the structure for this file.add()
+# At lower numbers of simulations, it's much slower than the standard single threaded simulator, but it's much faster
+# when doing many simulations.
 
-#* For the other objects, I knew I would need a player, and I also added a team class and an 
-#* inning class.  The team class takes care of tracking and reporting home runs, and allows me to
-#* iterate through all of the players in a team in a similar way to itertools.cycle.  I added
-#* the inning class to keep track of things that happened at the inning level, namely logging the
-#* score based on the player's runs.
+# currently, 1,000,000 simulations takes 186.84535884857178s (3:06.84, or 1.86845x10^(-4) sec/sim), using 4 cores on my macbook pro 2019.
+# (all apps closed except vscode, prusaslicer, terminal, chrome (2 tabs), spotify, messages, which are all (except chrome) pretty lightweight)
 
-#* I chose top-down design because I knew that I would need to keep track of all of these different
-#* peices of data which all needed to be reset at different times.  Writing these directly into 
-#* functions or as part of simGame/simOneWS would be hard to understand and debug.  Therefore, I
-#* put everything into its own class. 
+# it's all very hacky, so definately not the best way to implement it, but it works.  As with the single-threaded optimized version,
+# the comments are mostly out of date.
 
-#* However, once I'd planned out everything, I implemented it all in a spiral development style.
-#* I started with Player, importing the data, and simulating, then added Team, then Inning, then
-#* simGame, then simWS, then main with all of the input, output, and logging.  It was all done 
-#* based on the classes though, not just making all of the classes and working on all of them 
-#* concurrently, which helped speed up the process a lot.
+# as they say, "this software is provided as-is, without any warranty".  Run at your own risk.
 
-
-from threading import Thread
 import time
-from unittest import result
 from WSPlayer import Player
-from numba import jit
-from multiprocessing import Process, Pipe, Manager
-from math import ceil
+from multiprocessing import Process, Pipe
 import numpy as np
-
-#* Team and Inning classes below. Classes end on line 208. 
-#C-u 176 C-n
-#* Then there's functions.  Main() is on 
 
 #%%
 class Team:
@@ -423,6 +404,12 @@ Braves:{bHomers}
 
 def main():
     'main function!'
+
+    parent0, child0 = Pipe()
+    parent1, child1 = Pipe()
+    parent2, child2 = Pipe()
+    parent3, child3 = Pipe()
+
     number = input('''Welcome to the World Series Simulator!
 
 This program will simulate a World Series matchup between the
@@ -447,45 +434,41 @@ Enter the number of World Series you'd like to simulate: ''')
             #by writing all the stuff at the end, we save a lot of computation time.  
             #writing to files is much slower that saving to a string in ram
     else:
-        results = { #init var
-            'A4':0,
-            'A5':0,
-            'A6':0,
-            'A7':0,
-            'B4':0,
-            'B5':0,
-            'B6':0,
-            'B7':0,
-        }
+        #you've probably only got four cores
+        d=divmod(number, 4)
+        perProcess=[d[0], d[0], d[0], d[0]+d[1]]
 
-        #parent0, child0 = Pipe()
-        #parent1, child1 = Pipe()
+        a=Process(target=simMultiple, args=(perProcess[0], child0))
+        b=Process(target=simMultiple, args=(perProcess[1], child1))
+        c=Process(target=simMultiple, args=(perProcess[2], child2))
+        d=Process(target=simMultiple, args=(perProcess[3], child3))
 
-        with Manager() as manager:
-            results=manager.dict(results)
-            multiLog=manager.list()
+        a.start()
+        b.start()
+        c.start()
+        d.start()
 
-            a=Process(target=simMultiple, args=(int(number/2), results, multiLog))
-            b=Process(target=simMultiple, args=(ceil(number/2), results, multiLog))
+        
+        aResults, aLog = parent0.recv()
+        bResults, bLog = parent1.recv()
+        cResults, cLog = parent2.recv()
+        dResults, dLog = parent3.recv()
 
-            a.start()
-            b.start()
+        results=aResults+bResults+cResults+dResults #adds elementwise because they're numpy arrays
+        multiLog=aLog+bLog+cLog+dLog #concatenates because they're python lists
 
-            a.join()
-            b.join()
+        a.join() #wait for each to finish
+        b.join()
+        c.join()
+        d.join()
 
-            
-            #print(results, multiLog)
-
-            results=results.values()
-            multiLog=list(multiLog)
 
 
         
         #output stuff to file
         with open('WSmultiseries.log', 'w') as f:
             #header
-            f.write('Astros-Braves World Series Simulation\n\n{mL}'.format(mL=''.join(['{k}: {v}\n'.format(k=counter+1, v=i) for counter, i in enumerate(multiLog)])))
+            f.write('Astros-Braves World Series Simulation\n\n{mL}'.format(mL='\n'.join(['{k}: {v}'.format(k=counter+1, v=i) for counter, i in enumerate(multiLog)])))
 
         
         ### shell output
@@ -497,8 +480,7 @@ Enter the number of World Series you'd like to simulate: ''')
         p = [round(i/sumWins*100, 1) for i in results] #create list of probabilities of each case happening
 
         #print the probabilities
-        for i in range(4): shellOutput+='\nAstros win in {num}: {prob}%'.format(num=i+4, prob=p[i])
-        for i in range(4): shellOutput+='\nBraves win in {num}: {prob}%'.format(num=i+4, prob=p[i+4])
+        for i in range(8): shellOutput+='\nAstros win in {num}: {prob}%'.format(num=i+4 if i<4 else i, prob=p[i])
 
         ### print an ascii graph
         #title
@@ -513,25 +495,46 @@ Enter the number of World Series you'd like to simulate: ''')
     print(f'\nTime taken for {number} simulations: {endTime-startTime}s')
 
 #@jit(forceobj=True, nogil=True)
-def simMultiple(num, results, multiLog):
-    output=[]
+def simMultiple(num, conn):
+    multiLog=[]
+    # results = {
+    #     'A4':0,
+    #     'A5':0,
+    #     'A6':0,
+    #     'A7':0,
+    #     'B4':0,
+    #     'B5':0,
+    #     'B6':0,
+    #     'B7':0,
+    # }
+    results = {
+        'Astros win in 4': 0,
+        'Astros win in 5': 0,
+        'Astros win in 6': 0,
+        'Astros win in 7': 0,
+        'Braves win in 4': 0,
+        'Braves win in 5': 0,
+        'Braves win in 6': 0,
+        'Braves win in 7': 0,
+    }
     for _ in range(num):
         WSData = simOneWS(False)
-        results['{data_0}{data_1}'.format(data_0=WSData[0], data_1=WSData[-1])]+=1
-        output.append(WSData)
-    multiLog+=output
-    #conn.send((np.array(list(results.values())), list(multiLog.values())))
-    #conn.close()
+        results[WSData]+=1
+    multiSeriesString=np.concatenate([[i[0]]*i[1] for i in results.items()]).ravel()
+    np.random.shuffle(multiSeriesString) #to get realistic looking order, because threading messes up true order anyway
+    conn.send((np.array(list(results.values())), multiSeriesString.tolist()))
+
+    conn.close()
     
 if __name__=='__main__': 
-    import cProfile
-    import pstats
+    # import cProfile
+    # import pstats
 
-    with cProfile.Profile() as pr:
-        main()
+    # with cProfile.Profile() as pr:
+    #     main()
 
-    stats = pstats.Stats(pr)
-    stats.sort_stats(pstats.SortKey.TIME)
+    # stats = pstats.Stats(pr)
+    # stats.sort_stats(pstats.SortKey.TIME)
     # stats.print_stats()
-    stats.dump_stats(filename='needs_profiling.prof')
-    #main()
+    # stats.dump_stats(filename='needs_profiling.prof')
+    main()

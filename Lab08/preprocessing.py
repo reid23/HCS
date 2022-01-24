@@ -1,3 +1,9 @@
+#my preprocessing script
+#not exactly legal, but that's why you don't have to run it lol
+
+#it works ok
+
+
 import pandas as pd
 import numpy as np
 

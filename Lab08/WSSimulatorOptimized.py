@@ -1,38 +1,20 @@
 #%%
 # Author: Reid Dye
 
-# This file contains the code to run world series simulations, as per the Lab08 specs.
+# This file contains the code to run world series simulations, maximally optimized.
+# I've done a bunch of profiling and tiny changes to get the speed pretty low. It runs at around
+# five seconds for 10,000 simulations, which I think is pretty good.  I could get it faster,
+# but that would most likely require a major overhaul of the entire structure.
 
-#* I used top-down design for planning, then prototyping to implement that.  I planned out that
-#* I would need the main function to handle input, output, and calling simulations multiple times.
-#* Then I would need a function to simulate one world series, which would in turn need a function
-#* to simulate one game.  That's how I came up with the structure for this file.add()
+# I tried to improve this using numba and jit, but I couldn't get it to work in nopython mode, and
+# object mode was slower than without any jit.  
 
-#* For the other objects, I knew I would need a player, and I also added a team class and an 
-#* inning class.  The team class takes care of tracking and reporting home runs, and allows me to
-#* iterate through all of the players in a team in a similar way to itertools.cycle.  I added
-#* the inning class to keep track of things that happened at the inning level, namely logging the
-#* score based on the player's runs.
-
-#* I chose top-down design because I knew that I would need to keep track of all of these different
-#* peices of data which all needed to be reset at different times.  Writing these directly into 
-#* functions or as part of simGame/simOneWS would be hard to understand and debug.  Therefore, I
-#* put everything into its own class. 
-
-#* However, once I'd planned out everything, I implemented it all in a spiral development style.
-#* I started with Player, importing the data, and simulating, then added Team, then Inning, then
-#* simGame, then simWS, then main with all of the input, output, and logging.  It was all done 
-#* based on the classes though, not just making all of the classes and working on all of them 
-#* concurrently, which helped speed up the process a lot.
+# The reason this is a separate file is that it's harder to read, and the comments are slightly out of date
+# because I didn't want to re-comment after I optimized everything.
 
 
 import time
 from WSPlayer import Player
-from multiprocessing import Process
-from numba import jit, cuda
-#* Team and Inning classes below. Classes end on line 208. 
-#C-u 176 C-n
-#* Then there's functions.  Main() is on 
 
 #%%
 class Team:
@@ -193,7 +175,7 @@ class Inning:
         # This information is then written to self.log.  
 
         for i in range(play):
-            a=self._shiftBit(player if not i else 0)
+            a=self._shiftBit(player if not i else 0) #could probably remove this function call, but that wouldn't help much
             
             if not not a: #not not is fast bool()
                 self.runs+=1
