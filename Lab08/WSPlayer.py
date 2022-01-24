@@ -52,7 +52,6 @@ class Player:
             elif self.double<=i<self.triple:
                 self.randNums[counter] = 3
             else:
-                self.homers+=1
                 self.randNums[counter] = 4
         self.n=0
 

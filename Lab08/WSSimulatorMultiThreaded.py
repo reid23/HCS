@@ -28,8 +28,12 @@
 
 from threading import Thread
 import time
+from unittest import result
 from WSPlayer import Player
 from numba import jit
+from multiprocessing import Process, Pipe, Manager
+from math import ceil
+import numpy as np
 
 #* Team and Inning classes below. Classes end on line 208. 
 #C-u 176 C-n
@@ -275,7 +279,7 @@ def printGraph(p:list):
     return '\n'.join(graph)
 
 #%%
-@jit(forceobj=True, nogil=True)
+#@jit(forceobj=True, nogil=True)
 def simGame(single):
     """simulates one game.
 
@@ -346,7 +350,7 @@ def simGame(single):
     return summaries, scores
 
 #%%
-@jit(forceobj=True, nogil=True)
+#@jit(forceobj=True, nogil=True)
 def simOneWS(single=False):
     """simulate one world series.
 
@@ -418,16 +422,6 @@ Braves:{bHomers}
 
 
 def main():
-    simMultiple(1, 1, {
-            'A4':0,
-            'A5':0,
-            'A6':0,
-            'A7':0,
-            'B4':0,
-            'B5':0,
-            'B6':0,
-            'B7':0,
-        }, {})
     'main function!'
     number = input('''Welcome to the World Series Simulator!
 
@@ -463,29 +457,35 @@ Enter the number of World Series you'd like to simulate: ''')
             'B6':0,
             'B7':0,
         }
-        multiLog = {}
 
-        threads=[]
-        maxThreads=50 if number>=1000 else int(number/10)
-        perThread=int(number/maxThreads)
-        for i in range(maxThreads):
-            threads.append(Thread(target=simMultiple, args=[perThread, i, results, multiLog]))
-            threads[-1].start()
-        
-        threads.append(Thread(target=simMultiple, args=[number-(maxThreads*perThread), i, results, multiLog]))
-        threads[-1].start()
+        #parent0, child0 = Pipe()
+        #parent1, child1 = Pipe()
 
-        for t in threads:
-            t.join()
+        with Manager() as manager:
+            results=manager.dict(results)
+            multiLog=manager.list()
+
+            a=Process(target=simMultiple, args=(int(number/2), results, multiLog))
+            b=Process(target=simMultiple, args=(ceil(number/2), results, multiLog))
+
+            a.start()
+            b.start()
+
+            a.join()
+            b.join()
+
             
-        print(results, sum(list(results.values())))
+            #print(results, multiLog)
+
+            results=results.values()
+            multiLog=list(multiLog)
 
 
         
         #output stuff to file
         with open('WSmultiseries.log', 'w') as f:
             #header
-            f.write('Astros-Braves World Series Simulation\n\n{mL}'.format(mL=''.join(['{k}: {v}\n'.format(k=key, v=val) for key, val in multiLog.items()])))
+            f.write('Astros-Braves World Series Simulation\n\n{mL}'.format(mL=''.join(['{k}: {v}\n'.format(k=counter+1, v=i) for counter, i in enumerate(multiLog)])))
 
         
         ### shell output
@@ -493,9 +493,8 @@ Enter the number of World Series you'd like to simulate: ''')
         shellOutput='\nResults of {num} World Series Simulations\n'.format(num=number)
         
         #get the probabilities by dividing each outcome's frequency by the total number of outcomes
-        wins = tuple(results.values())
-        sumWins = sum(wins)
-        p = [round(i/sumWins*100, 1) for i in results.values()] #create list of probabilities of each case happening
+        sumWins = sum(results)
+        p = [round(i/sumWins*100, 1) for i in results] #create list of probabilities of each case happening
 
         #print the probabilities
         for i in range(4): shellOutput+='\nAstros win in {num}: {prob}%'.format(num=i+4, prob=p[i])
@@ -513,11 +512,26 @@ Enter the number of World Series you'd like to simulate: ''')
 
     print(f'\nTime taken for {number} simulations: {endTime-startTime}s')
 
-@jit(forceobj=True, nogil=True)
-def simMultiple(num, yourThread, results, multiLog):
-    for i in range(num):
+#@jit(forceobj=True, nogil=True)
+def simMultiple(num, results, multiLog):
+    output=[]
+    for _ in range(num):
         WSData = simOneWS(False)
         results['{data_0}{data_1}'.format(data_0=WSData[0], data_1=WSData[-1])]+=1
-        multiLog[i+1+yourThread]=WSData
+        output.append(WSData)
+    multiLog+=output
+    #conn.send((np.array(list(results.values())), list(multiLog.values())))
+    #conn.close()
     
-if __name__=='__main__': main()
+if __name__=='__main__': 
+    import cProfile
+    import pstats
+
+    with cProfile.Profile() as pr:
+        main()
+
+    stats = pstats.Stats(pr)
+    stats.sort_stats(pstats.SortKey.TIME)
+    # stats.print_stats()
+    stats.dump_stats(filename='needs_profiling.prof')
+    #main()
