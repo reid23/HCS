@@ -427,7 +427,7 @@ Enter the number of World Series you'd like to simulate: ''')
     if number==1:
         results = simOneWS(True) #simulate
         print(results[0])    #print preformatted shell output
-        with open('WSPlayByPlay.log', 'w') as f:
+        with open('WSPlayByPlay.py', 'w') as f:
             f.write(results[1]) #log preformatted play by play
             #by writing all the stuff at the end, we save a lot of computation time.  
             #writing to files is much slower that saving to a string in ram
@@ -440,7 +440,7 @@ Enter the number of World Series you'd like to simulate: ''')
             multiLog+='{a}: {data}\n'.format(a=i+1, data=WSData) #write the line to the file, with the ws number and the outcome.
 
         #output stuff to file
-        with open('WSmultiseries.log', 'w') as f:
+        with open('WSmultiseries.py', 'w') as f:
             #header
             f.write('Astros-Braves World Series Simulation\n\n{mL}'.format(mL=multiLog))
 

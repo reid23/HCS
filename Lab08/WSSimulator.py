@@ -420,7 +420,7 @@ Enter the number of World Series you'd like to simulate: ''')
     if number==1:
         results = simOneWS() #simulate
         print(results[0])    #print preformatted shell output
-        with open('WSPlayByPlay.log', 'w') as f:
+        with open('WSPlayByPlay.py', 'w') as f: #for real though, why is it .py?  It's not a python file!  it makes the syntax highlighter and linter go bonkers
             f.write(results[1]) #log preformatted play by play
             #by writing all the stuff at the end, we save a lot of computation time.  
             #writing to files is much slower that saving to a string in ram
@@ -437,7 +437,7 @@ Enter the number of World Series you'd like to simulate: ''')
         }
 
         #output stuff to fiel
-        with open('WSmultiseries.log', 'w') as f:
+        with open('WSmultiseries.py', 'w') as f:
             #header
             f.write('Astros-Braves World Series Simulation\n')
 
