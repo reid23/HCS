@@ -5,12 +5,12 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Python: Lab07",
+            "name": "Python (Lab)",
             "type": "python",
             "request": "launch",
             "program": "${file}",
             "console": "integratedTerminal",
-            "cwd": "${workspaceFolder}/Lab07"
+            "cwd": "${workspaceFolder}/Lab08"
         }
     ]
 }

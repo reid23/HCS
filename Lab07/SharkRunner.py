@@ -40,7 +40,7 @@ def main():
             entryList = gui.getEntry()
             if not not entryList: break
             else: gui.thingMethod(Gui.MSGBOX, 'setText', True, False,
-                                  'Invalid input. Enter three unique fish coordinates in the form x,y in the entry boxes, \nwhere x and y are integers from 0 to 10 inclusive, then click Start.')
+                                  'Invalid input. Enter three unique fish coordinates in the form x,y in the entry boxes, \nwhere x and y are integers in [1,10], then click Start.')
         #resets shark position. redundant on first round, adds visual clarity on subsequent rounds
         shark.reset()
         gui.moveAnimal(gui.SHARK, shark.getPos(), shark.getDirection(), shark.getFleeMode())
@@ -95,14 +95,12 @@ def main():
             #stalemate counter increments with each move turn and resets when a fish is eaten
             tracker.addState([fish.getPos() for fish in fishList], [fish.getDirection() for fish in fishList], shark.getPos()) #records current positions
             stalemate += 1
-            if stalemate >= 40: #game ends at 40 moves without eating a fish
+            if stalemate >= 75: #game ends at 75 moves without eating a fish
                 gui.thingMethod(Gui.MSGBOX, 'setText', True, False, 'The shark starved. Enter new fish coordinates and click Start to try again.')
                 continueGame = False
-                print('stalemate through no fish in 40 moves')
             if tracker.checkStalemate(): #checks if the current gamestate has been repeated 3 times already
                 gui.thingMethod(Gui.MSGBOX, 'setText', True, False, 'The shark starved. Enter new fish coordinates and click Start to try again.')
                 continueGame = False
-                print('stalemate through 3 repeated gamestates')
             if not (fishList[0].alive() or fishList[1].alive() or fishList[2].alive()):
                 gui.thingMethod(Gui.MSGBOX, 'setText', True, False, 'All the fish have been eaten. Enter new fish coordinates and click Start to try again.')
                 continueGame = False
@@ -111,3 +109,6 @@ def main():
         #when the continueGame loop is broken, the fish positions and values are reset
         for index, fish in enumerate(fishList):
             fish.reset()
+
+if __name__=='__main__': 
+    main()
