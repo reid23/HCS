@@ -1,4 +1,42 @@
 #%%
+#* 1/24 - OOD
+class Class:
+    def __init__(self, name, teacher, roster):
+        self.name=name
+        self.teacher=teacher
+        self.roster=roster
+    def takeAttendence(self, whoIsHere):
+        allPresent=True
+        for student in self.roster:
+            if student in whoIsHere:
+                pass
+            else:
+                allPresent=False
+        return allPresent
+    def meeting(self):
+        self.teachLesson()
+    def teachLesson(self, lesson):
+        return f"yay! here's the lesson: {lesson}"
+
+class Club(Class):
+    def __init__(self, name, teacher, studentLeader, roster):
+        super().__init__(name, teacher, roster)
+        self.studentLeader=studentLeader
+    def meeting(self):
+        self.doActivity()
+    def doActivity(self):
+        self.teachLesson(f'funClubActivity with club {self.name}')
+
+
+class AIClub(Club):
+    def __init__(self, name, teacher, studentLeader, roster, studentPythonSkills=None):
+        super().__init__(name, teacher, studentLeader, roster)
+        print(super().super())
+        self.studentPythonSkills=studentPythonSkills
+
+
+
+#%%
 from numba import njit, jit
 
 @jit(nopython=True)
@@ -163,15 +201,25 @@ def bc(A, B, func):
 
     print(s_a, s_b)
 
+#%%
 def stretch(arr, axis, len):
-    pass
+    for i, _ in enumerate(eval(f'arr{"[0]"*axis}')):
+        print(f'arr{("[0]"*axis)+"["+str(i)+"]"}=[arr{("[0]"*axis)+"["+str(i)+"]"} for _ in range(len)]')
+        print("["+str(i)+"]")
+        exec(f'arr{("[0]"*axis)+"["+str(i)+"]"}=[arr{("[0]"*axis)+"["+str(i)+"]"} for _ in range(len)]', locals(), locals())
+    #waaaaa
 
+class lrst:
+    def __init__(self, *shape):
+        self.dims=[lrst(*shape[1:]) if len(shape)>1 else 0 for _ in range(shape[0])]
+        print(self.dims)
 
 
 
 
 #%%
 import numpy as np
+
 def zeroes(shape):
     output=[]
     shape.reverse()
