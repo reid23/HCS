@@ -1,4 +1,26 @@
 #%%
+from functools import cache
+from numba import njit
+
+def fib(n):
+    if n<=2:
+        return 1
+    return fib(n-1) + fib(n-2)
+
+@cache
+def fibc(n):
+    if n<=2:
+        return 1
+    return fibc(n-1) + fibc(n-2)
+
+
+@njit
+def fibj(n):
+    if n<=2:
+        return 1
+    return fibj(n-1) + fibj(n-2)
+
+#%%
 from numba import njit, jit
 
 @jit(nopython=True)
