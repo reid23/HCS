@@ -1,5 +1,5 @@
 from math import log, floor
-import sys
+
 def cvtr(num: str|int, cur: int, end: int, place: int =-1):
 
     if cur != 10: #convert to base 10 on first recursion
@@ -29,8 +29,6 @@ def error(reason):
     print('\nError:', reason, '\n')
 
 
-# if len(sys.argv)>1:
-#     pass #arguments
 def main():
     print('Welcome to the base conversion program! If you would like to quit this program, use C-d (like standard python shells).\n')
     while True:
