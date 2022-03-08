@@ -1,4 +1,70 @@
 #%%
+import random
+def sorted(l):
+    for counter, i in enumerate(l):
+        if counter==0:
+            continue
+        if i<l[counter-1]:
+            return False
+    return True
+
+def bogosort(l):
+    while not sorted(l):
+        random.shuffle(l)
+    return l
+
+#%%
+def fact(n):
+    out = 1
+    for i in range(n):
+        out *= i+1
+    return out
+
+def factr(n):
+    if n==1:
+        return 1
+    return factr(n-1)*n
+
+#%%
+from numba import njit
+from functools import cache, lru_cache
+
+def fib(n):
+    if n<=2:
+        return 1
+    return fib(n-1) + fib(n-2)
+
+@njit
+def fibj(n):
+    if n<=2:
+        return 1
+    return fibj(n-1) + fibj(n-2)
+
+fibj(3)
+
+@cache
+def fibc(n):
+    if n<=2:
+        return 1
+    return fibc(n-1) + fibc(n-2)
+
+
+@lru_cache(10)
+def fiblc(n):
+    if n<=2:
+        return 1
+    return fiblc(n-1) + fiblc(n-2)
+
+def fibi(n):
+    nums = []
+    for i in range(n):
+        if i<=2:
+            nums.append(1)
+        else:
+            nums.append(nums[-1]+nums[-2])
+    return nums[-1]
+
+#%%
 #* 1/24 - OOD
 class Class:
     def __init__(self, name, teacher, roster):
