@@ -153,23 +153,10 @@ fn main() {
     // merge_sort(&mut v, 1, 1);
     // println!("sorted: {:?}", v);
 
-
-
-
     println!("Method:            Sorts:  Length:    Min:         Max:         Avg:");
-    for i in 1..6{time_sort(String::from("Insertion Sort"), insertion_sort, 10, u32::pow(10, i));} println!("");
-    for i in 1..6{time_sort(String::from("Selection Sort"), selection_sort, 10, u32::pow(10, i));} println!("");
-    for i in 1..6{time_sort(String::from("Bubble Sort"), bubble_sort, 10, u32::pow(10, i));} println!("");
-    for i in 1..6{time_sort(String::from("Merge Sort"), merge_sort, 10, u32::pow(10, i));} println!("");
-    for i in 1..6{time_sort(String::from("Quicksort"), quick_sort, 10, u32::pow(10, i));} println!("");
-
-    // time_sort(String::from("Quicksort"), quick_sort, 10, 10);
-    // time_sort(String::from("Quicksort"), quick_sort, 10, 100);
-    // time_sort(String::from("Quicksort"), quick_sort, 10, 1_000);
-    // time_sort(String::from("Quicksort"), quick_sort, 10, 10_000);
-    // time_sort(String::from("Quicksort"), quick_sort, 10, 100_000);
-    // time_sort(String::from("Quicksort"), quick_sort, 10, 1_000_000);
-
-
-
+    for i in 1..=6{time_sort(String::from("Insertion Sort"), insertion_sort, 10, u32::pow(10, i));} println!("");
+    for i in 1..=6{time_sort(String::from("Selection Sort"), selection_sort, 10, u32::pow(10, i));} println!("");
+    for i in 1..=6{time_sort(String::from("Bubble Sort"), bubble_sort, 10, u32::pow(10, i));} println!("");
+    for i in 1..=6{time_sort(String::from("Merge Sort"), merge_sort, 10, u32::pow(10, i));} println!("");
+    for i in 1..=6{time_sort(String::from("Quicksort"), quick_sort, 10, u32::pow(10, i));} println!("");
 }
