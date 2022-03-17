@@ -152,11 +152,17 @@ fn main() {
     // let mut v: Vec<f32> = vec![9.0,7.0,5.0,5.0,4.0,3.0,7.0,9.0];
     // merge_sort(&mut v, 1, 1);
     // println!("sorted: {:?}", v);
+    let start = Instant::now();
 
     println!("Method:            Sorts:  Length:    Min:         Max:         Avg:");
     for i in 1..=6{time_sort(String::from("Insertion Sort"), insertion_sort, 10, u32::pow(10, i));} println!("");
+    println!("total time: {}", start.elapsed().as_secs());
     for i in 1..=6{time_sort(String::from("Selection Sort"), selection_sort, 10, u32::pow(10, i));} println!("");
+    println!("total time: {}", start.elapsed().as_secs());
     for i in 1..=6{time_sort(String::from("Bubble Sort"), bubble_sort, 10, u32::pow(10, i));} println!("");
+    println!("total time: {}", start.elapsed().as_secs());
     for i in 1..=6{time_sort(String::from("Merge Sort"), merge_sort, 10, u32::pow(10, i));} println!("");
+    println!("total time: {}", start.elapsed().as_secs());
     for i in 1..=6{time_sort(String::from("Quicksort"), quick_sort, 10, u32::pow(10, i));} println!("");
+    println!("total time: {}", start.elapsed().as_secs());
 }
