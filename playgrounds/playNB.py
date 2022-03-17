@@ -1,4 +1,25 @@
 #%%
+class dynamicFuncs:
+    def __init__(self):
+        self.remembered = {}
+    def fib(self, n):
+        try:
+            return self.remembered[n]
+        except KeyError:
+            if n<=2:
+                self.remembered[n] = 1
+                return 1
+            self.remembered[n] = +self.fib(n-2)+self.fib(n-1)
+            return self.remembered[n]
+        
+
+def fibNaive(n):
+    if n<=2:
+        return 1
+    return fibNaive(n-2)+fibNaive(n-1)
+
+
+#%%
 import random
 def sorted(l):
     for counter, i in enumerate(l):
