@@ -1,0 +1,6 @@
+blah blah blah
+
+alias benchmark="/Users/reiddye/HCS/Lab10/benchmark"
+
+test
+blah

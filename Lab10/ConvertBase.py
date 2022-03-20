@@ -1,23 +1,28 @@
 from math import log, floor
 
-def toTen(num: str, cur: int): #for explanation of how the one in cvtr works
-    return sum([({
-        'a': 10, 'b': 11, 'c': 12, 'd': 13, 'e': 14, 'f': 15
-            }[char] 
-            if char in 'abcdef' 
-            else int(char))*(cur**counter) 
-                for counter, char in enumerate(num[::-1])])
+#probably better to read this from bottom to top
+def toTen(num: str, cur: int): # for explanation of how the one in cvtr works, the same but on multiple lines
+    return sum( # add up all of the different digit places
+                [ #this whole thing is a generator in a list, so do the next four lines for each char in num
+                            (ord(char)-87 # if the digit is a character, use ord
+                            if char in 'abcdef' 
+                            else int(char) # otherwise just use int
+                        )*(cur**counter) # now that we've got the digit in base 10, multiply by correct power of cur
+                    for counter, char in enumerate(num[::-1]) #the for loop part: we loop through chars (and count) backwards.
+                ]
+              )
 
 def toStr(num): return str(num) if num<10 else chr(num-87)
 
 def toTenR(num: str, cur: int):
-    digit = ord(num[-1])-87 if num[-1] in 'abcdef' else int(num[-1])
-    return digit*(cur**(len(num)-1)) + toTenR(num[:-1], cur) if len(num)>1 else digit
+    digit = ord(num[-1])-87 if num[-1] in 'abcdef' else int(num[-1]) # convert to number in base 10
+    return digit*(cur**(len(num)-1)) + toTenR(num[:-1], cur) if len(num)>1 else digit # multiply by correct power of cur, and add the rest of the number
+
 def cvtrBig(num: str|int, cur: int, end: int, place: int = -1):
-    if place == -1: 
-        num = toTenR(num[::-1], cur)
-        place = floor(log(num, end))
-    return toStr(num) if place==0 else toStr(num//(end**place)) + cvtrBig(num%(end**place), 10, end, place-1)
+    if place == -1: #if first recursion
+        num = toTenR(num[::-1], cur) # convert to base 10
+        place = floor(log(num, end)) # get number of places in final number
+    return toStr(num) if place==0 else toStr(num//(end**place)) + cvtrBig(num%(end**place), 10, end, place-1) # base case is zero places left, otherwise get correct number
 
 
 def cvtr(num: str|int, cur: int, end: int, place: int =-1): return (lambda num: str(num) if num<10 else chr(num-87))((sum([(ord(char)-87 if char in 'abcdef' else int(char))*(cur**counter) for counter, char in enumerate(num[::-1])]) if isinstance(num, str) else num)) if (place if place != -1 else floor(log((sum([(ord(char)-87 if char in 'abcdef' else int(char))*(cur**counter) for counter, char in enumerate(num[::-1])]) if isinstance(num, str) else num), end)))==0 else (lambda num: str(num) if num<10 else chr(num-87))((sum([(ord(char)-87 if char in 'abcdef' else int(char))*(cur**counter) for counter, char in enumerate(num[::-1])]) if isinstance(num, str) else num)//(end**(place if place != -1 else floor(log((sum([(ord(char)-87 if char in 'abcdef' else int(char))*(cur**counter) for counter, char in enumerate(num[::-1])]) if isinstance(num, str) else num), end))))) + cvtr((sum([(ord(char)-87 if char in 'abcdef' else int(char))*(cur**counter) for counter, char in enumerate(num[::-1])]) if isinstance(num, str) else num)%(end**(place if place != -1 else floor(log((sum([(ord(char)-87 if char in 'abcdef' else int(char))*(cur**counter) for counter, char in enumerate(num[::-1])]) if isinstance(num, str) else num), end)))), 10, end, (place if place != -1 else floor(log((sum([(ord(char)-87 if char in 'abcdef' else int(char))*(cur**counter) for counter, char in enumerate(num[::-1])]) if isinstance(num, str) else num), end)))-1)

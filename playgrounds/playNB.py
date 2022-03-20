@@ -1,4 +1,20 @@
 #%%
+def recursive_linear_search(arr, toFind, start=0):
+    if start==len(arr):
+        return -1
+    if arr[start]==toFind:
+        return start
+    return recursive_linear_search(arr, toFind, start+1)
+
+a=[5,2,7,2,9,4,2,0,1,5,2,3,4,8,3]
+print(a)
+print(recursive_linear_search(a, 10))
+
+
+
+
+
+#%%
 class dynamicFuncs:
     def __init__(self):
         self.remembered = {}
