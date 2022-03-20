@@ -171,11 +171,11 @@ fn main() {
         time_sort(String::from("selection sort"), &selection_sort, iters, length);
         time_sort(String::from("bubble sort"), &bubble_sort, iters, length);
         time_sort(String::from("merge sort"), &merge_sort, iters, length);
+        println!("");
     }
 
     if args.iter().any(|a| (a.contains("-") && a.contains("a"))| (a=="--args-only")) {return};
     
-    println!("");
 
     let max_len_idx = args.iter().position(|a| (a.contains("-") && a.contains("m"))|(a=="--max-list-len"));
     let max_len = if max_len_idx == None {6} else {args[max_len_idx.unwrap()+1].parse::<u32>().unwrap()};
