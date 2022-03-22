@@ -1,7 +1,7 @@
-
-
 use rand::{Rng, thread_rng, distributions::Uniform};
 use std::time::Instant;
+
+
 
 fn insertion_sort(l: &mut Vec<f32>, _low: usize, _high: usize){
     for i in 1..l.len(){

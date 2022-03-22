@@ -11,7 +11,7 @@
 #! to revert the changes made by this script:
 #! 1. delete the benchmark file (it's in the same directory as this script)
 #! 2. delete the line from ~/.zshrc that says
-#*    `alias benchmark="/path/to/here/benchmark"`
+#!    `alias benchmark="/path/to/here/benchmark"`
 #! then when you restart your terminal it won't have the alias
 #! anymore and will be back to normal
 
@@ -26,15 +26,16 @@ download_fail () {
     exit 1
 }
 
-# echo $PROFILE_LINE
+echo $PROFILE_LINE
 
 
 if [ "$1" == "--update" ]
 then
     echo "downloading most current binary..."
     curl --silent -L https://raw.githubusercontent.com/reid23/HCS/Lab10/Lab10/benchmark --output "$SCRIPTPATH/benchmark" || download_fail
-    chmod +x "$SCRIPTPATH/benchmark"
     echo "update complete"
+    chmod +x "$SCRIPTPATH/benchmark"
+    $PROFILE_LINE
     exit 0
 fi
 
@@ -45,7 +46,8 @@ else
     echo "Dowloading..."
     curl --silent -L https://raw.githubusercontent.com/reid23/HCS/Lab10/Lab10/benchmark --output "$SCRIPTPATH/benchmark" || download_fail
     echo "Download finished."
-    eval "$PROFILE_LINE"
+    chmod +x "$SCRIPTPATH/benchmark"
+    $PROFILE_LINE
     echo ${PROFILE_LINE} >> ~/.zshrc
     echo "benchmark successfully installed!"
 fi

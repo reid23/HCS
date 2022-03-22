@@ -1,6 +1,13 @@
+'''
+Author: Reid Dye
+
+This file runs an interactive shell which allows you to convert numbers between bases.
+'''
+
 from math import log, floor
 
-#probably better to read this from bottom to top
+'''This function is unused.  It serves only as an explanation for the copy in the one-line cvtr function.'''
+#probably better to read this function from bottom to top
 def toTen(num: str, cur: int): # for explanation of how the one in cvtr works, the same but on multiple lines
     return sum( # add up all of the different digit places
                 [ #this whole thing is a generator in a list, so do the next four lines for each char in num
@@ -12,6 +19,8 @@ def toTen(num: str, cur: int): # for explanation of how the one in cvtr works, t
                 ]
               )
 
+'''these three functions together are the equivalent of cvtr, where you can just call cvtrBig and it will do the same thing.
+The only difference is that here toTenR is recursive.'''
 def toStr(num): return str(num) if num<10 else chr(num-87)
 
 def toTenR(num: str, cur: int):
@@ -25,6 +34,7 @@ def cvtrBig(num: str|int, cur: int, end: int, place: int = -1):
     return toStr(num) if place==0 else toStr(num//(end**place)) + cvtrBig(num%(end**place), 10, end, place-1) # base case is zero places left, otherwise get correct number
 
 
+'''this function is the one that is actually used.  It's all one line!'''
 def cvtr(num: str|int, cur: int, end: int, place: int =-1): return (lambda num: str(num) if num<10 else chr(num-87))((sum([(ord(char)-87 if char in 'abcdef' else int(char))*(cur**counter) for counter, char in enumerate(num[::-1])]) if isinstance(num, str) else num)) if (place if place != -1 else floor(log((sum([(ord(char)-87 if char in 'abcdef' else int(char))*(cur**counter) for counter, char in enumerate(num[::-1])]) if isinstance(num, str) else num), end)))==0 else (lambda num: str(num) if num<10 else chr(num-87))((sum([(ord(char)-87 if char in 'abcdef' else int(char))*(cur**counter) for counter, char in enumerate(num[::-1])]) if isinstance(num, str) else num)//(end**(place if place != -1 else floor(log((sum([(ord(char)-87 if char in 'abcdef' else int(char))*(cur**counter) for counter, char in enumerate(num[::-1])]) if isinstance(num, str) else num), end))))) + cvtr((sum([(ord(char)-87 if char in 'abcdef' else int(char))*(cur**counter) for counter, char in enumerate(num[::-1])]) if isinstance(num, str) else num)%(end**(place if place != -1 else floor(log((sum([(ord(char)-87 if char in 'abcdef' else int(char))*(cur**counter) for counter, char in enumerate(num[::-1])]) if isinstance(num, str) else num), end)))), 10, end, (place if place != -1 else floor(log((sum([(ord(char)-87 if char in 'abcdef' else int(char))*(cur**counter) for counter, char in enumerate(num[::-1])]) if isinstance(num, str) else num), end)))-1)
 
 def main():
