@@ -21,6 +21,9 @@ import numpy as np #for saving data (I'm not waiting for it every time!)
 # who needs warnings anyway
 warnings.simplefilter('ignore', category=NumbaPendingDeprecationWarning)
 
+#! uncomment to turn off numba jit compilation
+# def njit(func): return func
+
 
 def timeSort(sort, iters, listLen):
     times = []
@@ -83,7 +86,6 @@ def bubbleSort(l):
 
 #source: cobbled together from https://en.wikipedia.org/wiki/Merge_sort
 #couldn't figure out how to make this one in-place though, so i just did the sketchy wrapper function trick
-
 
 def mergeSort(l):
     l=mergeSortMain(l)
@@ -157,12 +159,12 @@ class shutUp:
 
 
 def main():
-    runSorts='y'
-    # runSorts = input("Do you want to actually run the sorts (as opposed to loading old data)? [y/N] ") #n assumed as default
+    length = 14
+
+    runSorts = input("Do you want to actually run the sorts (as opposed to loading old data)? [y/N] ") #n assumed as default
     if 'y' in runSorts.lower():
         runSorts = True
-        #saveSorts = input("Do you want to save the timing data? [Y/n] ")# y assumed the default
-        saveSorts = 'y'
+        saveSorts = input("Do you want to save the timing data? [Y/n] ")# y assumed the default
         if 'n' in saveSorts.lower():
             saveSorts = False
         else:
@@ -171,7 +173,6 @@ def main():
         runSorts = False
         saveSorts = False
     
-    length = 14
 
     if runSorts:
         print("initializing...")

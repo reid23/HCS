@@ -3,18 +3,22 @@ So... I went a little overboard on this one.
 
 For benchmark, I tried to implement all of the sorts in Rust first, then port them over to python. I've been learning rust for an outside project, and I figured it would be a nice way to learn that while also improving my understanding of the sorts. I'm writing another summer program application right now, so I added pretty much everything to this lab that I could rationalize before working on that.
 
-## benchmark-installer
-You can run `benchmark-installer.sh` (might have to `chmod +x`) to download the compiled rust code and make an alias in your `~/.zshrc`.  Then you can use `benchmark` as a regular terminal command.  It doesn't do any system checking though, so I'm just assuming that your computer has the same architecture as mine (I think it does? Unless you have one of those arm chips).  In case the script doesn't work, I've included the actual binary and the source code (in the folder `.rust_stuff`).
-To try it run `benchmark -h`, I'm not typing that all out again here ;)
+## Benchmark (rust)
+This is the rust implementation.  It's compiled for my computer, but I think it will work for yours as well, unless you have one of those new ARM chips. There's a bunch of stuff, just run `./path/to/benchmark -h` (or whatever the right path is).  You might have to `chmod +x` if it's not executable by default.
 
 ## Benchmark
+For `Benchmark.py`, I used a bunch of libraries we haven't used as a class, so it won't run if you don't have `numpy`, `matplotlib`, and `numba` installed. These aren't for doing the actual specs; all of the printing to shell and sorting and timing would work with just normal (non-numpy) lists, but it would be much slower without numba, wouldn't make pretty graphs at the end, and you'd have to comment everything out.
 
-For `Benchmark.py`, I used a bunch of libraries we haven't used as a class, so it won't run if you don't have `numpy`, `matplotlib`, and `numba` installed. These aren't for doing the actual specs; all of the printing to shell and sorting and timing would work with just normal (non-numpy) lists, but it would be much slower without numba, wouldn't make pretty graphs at the end, and you'd have to comment everything out.  
+To change how long the longest list length is, you can change the `length` variable at the top of `main`. It will sort up to lists of length $2^{length+1}$.  I found that, even with numba, 14 was about as high as I could tolerate while debugging.  Without numba, the max was 11 or 12.  
+If you want to try running it without numba, you can uncomment line 25, which overwrites the `@njit` decorator to not do anything.
+
+When running with numba, there is also a one or two second initialization delay after you answer the questions.  This is because numba's just-in-time compilation is, by definition, only done when needed.  So I call all of the sorts in the beginning to make numba compile all of them before the benchmarking starts, preventing the compilation from messing with the data.
+
 One thing to be aware of is that `Benchmark.py` saves the timing data (if you tell it to) to the relative path `data/times.npy`, so you need a `data` folder in the same library that you're running `Benchmark.py` from.
 
 ## Profiling
 
-I also included `benchmark_profile.svg`, which is just a really cool graphic of the results from running cprofile on `Benchmark.py`.  It turns out that cprofile is pretty much useless, because it doesn't tell you anything deeper than the function level (like it just says "bubbleSort is slow!"), but it's still a really interesting graph because you can see the real flow of the program.  I also used `line_profiler`, which ended up being much more helpful because it give times line-by-line, but it doesn't have fancy gui.
+I also included `callgraph.svg`, which is just a really cool graphic of the results from running cprofile on `Benchmark.py`.  It turns out that cprofile is pretty much useless, because it doesn't tell you anything deeper than the function level (like it just says "bubbleSort is slow!"), but it's still a really interesting graph because you can see the real flow of the program.  I also used `line_profiler`, which ended up being much more helpful because it give times line-by-line, but it doesn't have fancy gui.
 
 ## ConvertBase
 
