@@ -152,7 +152,7 @@ fn main() {
         println!("   -t, --show-total-time");
         println!("                       show the full, overall timer for all sorts in the main benchmark");
         println!("   -m, --max-list-len LENGTH");
-        println!("                       number of zeroes of maximum list length to go up to for the main benchmark (ie 6 means 1_000_000)");
+        println!("                       (default 6) number of zeroes of maximum list length to go up to for the main benchmark (ie 6 means 1_000_000)");
         return;
     }
 
